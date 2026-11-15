@@ -10,6 +10,7 @@ import Dice from '../dice.js';
 const norm = (svg) => svg
 	.replace(/#[0-9a-f]{6}\b/gi, '#C')
 	.replace(/ id="[^"]*"/gu, '')
+	.replace(/ href="#[^"]*"/gu, ' href="#"')
 	.replace(/url\(#[^)]+\)/gu, 'url(#)');
 const ids = (svg) => [...svg.matchAll(/ id="([^"]*)"/gu)].map((m) => m[1]);
 const ds = (svg) => [...svg.matchAll(/ d="([^"]*)"/gu)].map((m) => m[1]);
@@ -65,10 +66,19 @@ test('the only `d` is the lattice, and the lattice is seeded: the seed-invariant
 		}
 		assert.equal(common.size, 0, `${JSON.stringify(opts)}: a d the seed cannot change: "${[...common][0] || ''}"`);
 	}
+	// the icon too: per value, no d survives across seeds — a value-conditional fixed d fails
+	for (let v = 1; v <= 6; v++) {
+		let icon = null;
+		for (let seed = 1; seed <= 6; seed++) {
+			const set = new Set(ds(Dice.die({ value: v, seed })));
+			icon = icon === null ? set : new Set([...icon].filter((d) => set.has(d)));
+		}
+		assert.equal(icon.size, 0, `die(${v}): a d the seed cannot change: "${[...icon][0] || ''}"`);
+	}
 	// sanity, so the assertion above cannot pass against a broken renderer: a throw repeats
-	// its own d under the same seed, and lattice: none carries no d at all
+	// its own d under the same seed; lattice: none drops the pattern, not the dice
 	assert.deepEqual(ds(Dice.toss({ seed: 9 })), ds(Dice.toss({ seed: 9 })));
-	assert.deepEqual(ds(Dice.toss({ seed: 9, lattice: 'none' })), []);
+	assert.ok(!Dice.toss({ seed: 9, lattice: 'none' }).includes('<pattern'));
 });
 
 test('no signature: the output names nothing, describes nothing, fingerprints nothing', () => {
@@ -79,6 +89,8 @@ test('no signature: the output names nothing, describes nothing, fingerprints no
 		Dice.toss({ seed: 'spintax.net', theme: 'light' }),
 		Dice.toss({ seed: 3, style: 'line', lattice: 'octagon', title: 'a throw' }),
 		Dice.toss({ seed: 4, size: 360, salt: 'sig' }),
+		Dice.die({ seed: 2, value: 4 }),
+		Dice.die({ seed: 'icon', value: 6, theme: 'light' }),
 	];
 	for (const svg of svgs) {
 		assert.doesNotMatch(svg, /<!--|<metadata|<desc[\s>]|\sdata-|\bxlink|\bversion\s*=|dice|spintax|301/iu,

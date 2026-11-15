@@ -58,13 +58,13 @@ Origin at the centre of the table, y down. Constants were tuned to the reference
 |---|---|---|
 | `H` | 100 | the die's half-edge — the cube is 2H on a side, centred on its origin |
 | `PITCH` | 0.91 rad | camera elevation ≈ 52°, orthographic bake |
-| `YAW` | ±(0.36–0.44) | one seeded draw per die (`die:i:orient`): sign × (0.36 + 0.08·u) |
+| `YAW` | ±(0.36–0.44) | a die's yaw: a sign draw and a magnitude draw (`die:i:orient`) |
 | `RS` / `RF` | 44 / 9 | silhouette rounding / face-quad rounding (projection units) |
 | `PIP` | 19 | pip radius in 3D units — a circle on the face, drawn as the exact projected ellipse |
 | `FELT` | margin 90 | felt inset from the viewBox at the long side, 64 at the short |
 | `RAIL` | 22–34 | the rail width, one seeded draw (`table:rail`) |
 | `JITTER` | ±0.06 | positional scatter around the canonical slot (yaw is the orientation) |
-| `SHADOW` | broad + contact | broad ellipse α .16 blur 14 + contact α .18 blur 5; a seam AO where dice touch |
+| `SHADOW` | broad + contact + seam | broad ellipse α .16 blur 14 + contact α .18 blur 5; a seam pool α .14 where dice touch |
 
 The felt is sized to the **projected** dice: the cube's half-extents at the yaw range are
 ≈131 × 164, ~17% over the flat half-diagonal, and the canonical slot clearance accounts for
@@ -77,7 +77,7 @@ it. The viewBox follows `dice`: the felt is sized to the canonical slots plus ma
 |---|---|---|
 | Felt | the table surface; carries the lattice at a low weight | no |
 | Rail | a padded ring around the felt in `rail` | width, corner |
-| Shadow | broad + contact `<ellipse>`s per die, seam AO where dice touch | — |
+| Shadow | broad + contact `<ellipse>`s per die, a seam pool where dice touch | — |
 | Die | a rounded cube: silhouette = rounded hull of the 8 projected corners; faces = projected quads under a shared airbrush | yaw, value |
 | Pips | exact projected ellipses in `pip` on each visible face's 3×3 lattice | — |
 
@@ -194,7 +194,9 @@ themes, the marks at 360 px — by the user (ADR 004's addendum), the same ritua
 cabinet. Provisional until then: the `rail` cascade above, and the light-theme `line` default.
 
 **Pins win.** Any role accepts any CSS colour string; the renderer never parses a pin, only
-escapes `" < > &`. `'auto'` unpins.
+escapes `" < > &`. `'auto'` unpins. One deliberate exception, because dice shade with
+gradients: a `#hex`/`rgb()` pin on `die` or `pip` is mixed in LCh into that part's light and
+shade; any other string (`var(…)`, named colours) is used verbatim for every stop, escaped.
 
 **The invariant:** *every throw reads as dice on a table whatever the brand — paper dice, black
 pips, a brand-coloured felt; and the brand lands on the table — the first chromatic colour
@@ -207,9 +209,10 @@ colour may go unused.*
 - Every seeded parameter draws from its **own** sub-seed:
   `u(k) = mulberry32(fmix32(seed32 ^ imul(fnv(k), 0x9E3779B9)))`; a string seed goes through
   FNV-1a — the family's `streams()`, ported unchanged.
-- **Namespaces:** `die:i:place` a die's slot jitter and rotation · `die:i:value` its face ·
-  `table:*` pip radius, rail, lattice and the shadow · `result:*` a preset's choices · `ids`
-  (+ `salt`) tokens.
+- **Namespaces:** `die:i:value` its top face · `die:i:orient` its yaw (a sign draw and a
+  magnitude draw) · `die:i:place` its slot jitter (a u and a v draw) · `table:*` the rail
+  width and corner, the lattice · `result:*` a preset's choices · `ids` (+ `salt`) tokens.
+  The pip radius and the shadows are constants (Machine space), not seeded draws.
 - Ids are keyed by what is drawn, not only by the seed, so two different throws under one seed
   on one page never share an id (cards-lite's lesson; `salt` is for the same picture twice).
 - No `Math.random`, no `Date`. The default seed is fixed: a build must reproduce.
