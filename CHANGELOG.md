@@ -1,0 +1,15 @@
+# Changelog
+
+All notable changes to `@spintax/dice-lite`. The version is the contract: same (seed,
+options) → identical bytes within a minor version; any change to the output bytes is a minor
+bump.
+
+## 0.1.0 — 2026-11-16
+
+- First release. A throw of dice on a table as an SVG string: the projected rounded cube
+  (three visible faces, exact projected pips, opposite sides sum to seven by construction),
+  seeded placement and values, the brand-coloured felt/rail/trim cascade with the light-theme
+  `line` escape, five results (`lucky7`, `snake`, `boxcars`, `matched`, `mixed`) as data,
+  `values` pins, the one-shot CSS settle with `prefers-reduced-motion` support, `palette()`,
+  `die()`, `init()` and `dice.d.ts`. Library 7227 B gzipped (budget frozen at 7424, ADR 006
+  addendum); a `dice: 3` throw averages 9347 B raw / 2345 B gzip over 60 seeds.

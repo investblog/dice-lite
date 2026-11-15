@@ -42,6 +42,9 @@
   ],
   "author": "301st (https://301.st)",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "homepage": "https://github.com/investblog/dice-lite#readme",
   "repository": {
     "type": "git",

@@ -1,0 +1,81 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dice-lite — a throw of dice as an SVG string</title>
+<style>
+	:root { color-scheme: dark; }
+	* { box-sizing: border-box; }
+	body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: #0b0e14; color: #dde; }
+	main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 64px; }
+	h1 { font-size: 22px; margin: 0 0 4px; }
+	h1 + p { margin: 0 0 20px; color: #9aa; }
+	.panel { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; background: #12161f;
+		border: 1px solid #232a38; border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
+	label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #9aa; }
+	input, select { background: #0b0e14; color: #dde; border: 1px solid #2a3345; border-radius: 7px;
+		padding: 5px 8px; font: inherit; font-size: 13px; }
+	input[type="number"] { width: 72px; }
+	#seed { width: 160px; }
+	.stages { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+	.stage { border-radius: 12px; padding: 16px; border: 1px solid #232a38; }
+	.stage.dark { background: #0b0e14; }
+	.stage.light { background: #fff; color: #334; }
+	.stage h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 10px;
+		color: inherit; opacity: .55; }
+	.stage svg { height: auto; display: block; max-width: 100%; }
+	footer { margin-top: 28px; color: #778; font-size: 13px; }
+	footer a { color: #9ab; }
+	code { background: #1a2030; border-radius: 5px; padding: 1px 6px; }
+</style>
+<script src="dice.js?v=play-1"></script>
+<main>
+	<h1>dice-lite</h1>
+	<p>A throw of dice on a table, drawn by code — one call returns an SVG string. Seeded, brand-aware, zero dependencies. Try the knobs:</p>
+	<div class="panel">
+		<label>seed <input id="seed" value="spintax.net"></label>
+		<label>brand <input id="brand" value="#00abf3,#d6af3c,#a91455" title="hex or hex list"></label>
+		<label>style <select id="style"><option value="">auto</option><option>flat</option><option>line</option></select></label>
+		<label>dice <select id="dice"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label>
+		<label>result <select id="result"><option value="">—</option><option>lucky7</option><option>snake</option><option>boxcars</option><option>matched</option><option>mixed</option></select></label>
+		<label>values <input id="values" placeholder="e.g. 4,,2" title="comma list; empty = seed/result"></label>
+		<label>motion <select id="motion"><option value="">off</option><option value="roll">roll</option></select></label>
+		<label>speed <input id="speed" type="number" step="0.5" min="0" value="1"></label>
+		<label>lattice <select id="lattice"><option>auto</option><option>trigon</option><option>hex</option><option>octagon</option><option>none</option></select></label>
+		<label>size <input id="size" type="number" step="10" value="360"></label>
+	</div>
+	<div class="stages">
+		<div class="stage dark"><h2>theme: dark</h2><div id="viewDark"></div></div>
+		<div class="stage light"><h2>theme: light</h2><div id="viewLight"></div></div>
+	</div>
+	<footer>
+		<p>Made in <a href="https://301.st">301</a> · for <a href="https://spintax.net">spintax.net</a></p>
+		<p><code>Dice.toss(opts)</code> → the whole throw · <code>Dice.die(opts)</code> → one die ·
+			<code>Dice.palette(brand, opts)</code> → the table's colours · <code>Dice.init(el, opts)</code> → keep it drawn</p>
+	</footer>
+</main>
+<script>
+	const $ = (id) => document.getElementById(id);
+	const brand = () => $('brand').value.split(',').map((x) => x.trim()).filter(Boolean);
+	const values = () => $('values').value.split(',').map((x) => {
+		const n = Number(x.trim());
+		return Number.isInteger(n) && n >= 1 && n <= 6 ? n : null;
+	});
+	const speed = () => {
+		const v = $('speed').valueAsNumber; // 0 is a real contract: it returns the static bytes
+		return Number.isFinite(v) ? v : undefined;
+	};
+	const opts = (theme) => ({
+		seed: $('seed').value, brand: brand(), theme,
+		style: $('style').value || undefined, dice: +$('dice').value,
+		result: $('result').value, values: values(),
+		motion: $('motion').value || undefined, speed: speed(),
+		lattice: $('lattice').value, size: +$('size').value || undefined,
+		salt: theme, // the same picture twice on one page
+	});
+	const draw = () => {
+		$('viewDark').innerHTML = Dice.toss(opts('dark'));
+		$('viewLight').innerHTML = Dice.toss(opts('light'));
+	};
+	document.querySelector('.panel').addEventListener('input', draw);
+	draw();
+</script>

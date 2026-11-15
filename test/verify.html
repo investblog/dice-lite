@@ -1,0 +1,178 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>dice-lite — verify</title>
+<style>
+	body { font: 13px/1.4 system-ui; background: #0b0e14; color: #9aa; margin: 0; padding: 12px; }
+	li.pass::before { content: '✔ '; color: #4c4; }
+	li.fail { color: #f66; }
+	li.fail::before { content: '✘ '; }
+	#verdict { margin-top: 8px; font-weight: 600; }
+</style>
+<ol id="out"></ol>
+<div id="verdict">running…</div>
+<script src="../dice.js"></script>
+<script>
+	// The browser half of the gate (scripts/browser-gate.mjs serves this page in three engines
+	// × both motion modes, then --mutate breaks the library on purpose: every check below must
+	// be seen red by some mutation, or the check is a lie — cards-lite's M5 lesson).
+	const checks = [];
+	const check = (name, fn) => checks.push([name, fn]);
+	const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+	// the same probes the Node tests use: round pips (aspect > .65) are the top face
+	const topPips = (seg) => {
+		let n = 0;
+		for (const m of seg.matchAll(/<ellipse [^>]*>/g)) {
+			const t = m[0];
+			if (t.includes('fill-opacity')) continue;
+			const g = (k) => +t.match(new RegExp(k + '="([^"]*)"'))[1];
+			if (g('ry') / g('rx') > 0.65) n++;
+		}
+		return n;
+	};
+	const SLOT_PX = [[-126, 0], [126, 0], [0, -126], [0, 126], [0, 0]];
+	const topValues = (svg) => {
+		const out = [];
+		for (const seg of svg.split('<g transform="translate(').slice(1).filter((s) => s.includes('clip-path='))) {
+			const nums = seg.slice(0, seg.indexOf(')')).match(/-?\d+\.?\d*/g).map(Number);
+			let best = 0, bd = Infinity;
+			for (let s = 0; s < SLOT_PX.length; s++) {
+				const d = (SLOT_PX[s][0] - nums[0]) ** 2 + (SLOT_PX[s][1] - nums[1]) ** 2;
+				if (d < bd) { bd = d; best = s; }
+			}
+			out[best] = topPips(seg);
+		}
+		return out;
+	};
+	const dieGroups = (host) => [...host.querySelectorAll('g')].filter((g) => g.getAttribute('clip-path'));
+
+	check('the library loads', () => typeof Dice.toss === 'function' && typeof Dice.die === 'function');
+
+	check('dice counts render', () => {
+		for (const k of [2, 3, 4, 5]) {
+			const host = document.createElement('div');
+			host.innerHTML = Dice.toss({ seed: 'count', dice: k });
+			if (dieGroups(host).length !== k) return false;
+		}
+		return true;
+	});
+
+	check('values show on the top face', () => {
+		for (let v = 1; v <= 6; v++) {
+			const host = document.createElement('div');
+			host.innerHTML = Dice.die({ value: v, seed: 'v' });
+			if (topPips(host.innerHTML) !== v) return false;
+		}
+		return true;
+	});
+
+	check('results name what the dice show', () => {
+		const t = (o) => topValues(Dice.toss(o));
+		const snake = t({ seed: 'r', result: 'snake' });
+		if (snake[0] !== 1 || snake[1] !== 1) return false;
+		const lucky = t({ seed: 'r', result: 'lucky7' });
+		const sum = lucky[0] + lucky[1];
+		if (sum !== 7 || lucky[0] === lucky[1]) return false;
+		const matched = t({ seed: 'r', dice: 4, result: 'matched' });
+		if (new Set(matched).size !== 1) return false;
+		const mixed = t({ seed: 'r', dice: 4, result: 'mixed' });
+		if (new Set(mixed).size !== 4) return false;
+		return true;
+	});
+
+	check('lattice and none', () => {
+		if (!Dice.toss({ seed: 1 }).includes('<pattern')) return false;
+		return !Dice.toss({ seed: 1, lattice: 'none' }).includes('<pattern');
+	});
+
+	check('ids never collide on a page', () => {
+		const ids = [];
+		for (const opts of [{ seed: 1 }, { seed: 1, salt: 'b' }, { seed: 1, theme: 'light' }, { seed: 1, style: 'line' }]) {
+			const host = document.createElement('div');
+			host.innerHTML = Dice.toss(opts);
+			const own = [];
+			host.querySelectorAll('[id]').forEach((el) => { ids.push(el.id); own.push(el.id); });
+			if (!own.length) return false; // no ids at all is a broken picture, not a collision-free one
+		}
+		return new Set(ids).size === ids.length;
+	});
+
+	check('same seed, same bytes', () => Dice.toss({ seed: 'x' }) === Dice.toss({ seed: 'x' }));
+
+	check('brand never changes which value is shown', () => {
+		const a = topValues(Dice.toss({ seed: 'b' }));
+		const b = topValues(Dice.toss({ seed: 'b', brand: ['#2f9e44', '#8a8a8a'] }));
+		return a.join(',') === b.join(',');
+	});
+
+	check('pins win', () => Dice.toss({ seed: 1, felt: 'var(--x, "#123")' }).includes('fill="var(--x, &quot;#123&quot;)"'));
+
+	check('the airbrush carries its light', () => {
+		const host = document.createElement('div');
+		host.innerHTML = Dice.die({ value: 3 });
+		const stops = [...host.querySelectorAll('radialGradient stop')];
+		const op = stops.map((s) => s.getAttribute('stop-opacity'));
+		return op.includes('.22') && op.includes('.09');
+	});
+
+	// computed styles (what the settle checks read) only exist for attached nodes
+	const mount = () => {
+		const host = document.createElement('div');
+		host.style.cssText = 'position:absolute;left:-99999px;top:0';
+		document.body.appendChild(host);
+		return host;
+	};
+	const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const settleHost = mount();
+	check('the settle rises mid-flight, or stills them under reduce', async () => {
+		settleHost.innerHTML = Dice.toss({ seed: 1, motion: 'roll' });
+		await sleep(200);
+		const ty = (g) => {
+			const m = getComputedStyle(g).transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,\s*([^)]+)\)/);
+			return m ? +m[1] : 0;
+		};
+		const gs = dieGroups(settleHost).map((g) => g.parentElement); // the animated groups
+		const rising = gs.some((g) => getComputedStyle(g).animationName !== 'none' && ty(g) < 0);
+		return REDUCE ? !rising : rising;
+	});
+
+	check('the settle lands every die on the felt', async () => {
+		await sleep(2600);
+		return dieGroups(settleHost).map((g) => g.parentElement)
+			.every((g) => getComputedStyle(g).animationName === 'none' || getComputedStyle(g).transform === 'none');
+	});
+
+	check('a fresh throw honours the reader\'s motion preference', async () => {
+		const host = mount();
+		host.innerHTML = Dice.toss({ seed: 2, motion: 'roll' });
+		await sleep(300);
+		const still = dieGroups(host).map((g) => g.parentElement)
+			.every((g) => getComputedStyle(g).animationName === 'none' && getComputedStyle(g).transform === 'none');
+		return REDUCE ? still : !still;
+	});
+
+	check('init() keeps a throw drawn and destroy clears it', () => {
+		const host = document.createElement('div');
+		const inst = Dice.init(host, { seed: 'i', dice: 4 });
+		if (!host.innerHTML.startsWith('<svg')) return false;
+		inst.set({ result: 'snake' });
+		inst.destroy();
+		return host.innerHTML === '';
+	});
+
+	(async () => {
+		const out = document.getElementById('out');
+		for (const [name, fn] of checks) {
+			let ok = false, note = '';
+			try { ok = await fn(); } catch (e) { note = ' — ' + (e && e.message); }
+			const li = document.createElement('li');
+			li.className = ok ? 'pass' : 'fail';
+			li.textContent = name + (ok ? '' : ' — FAIL' + note);
+			out.appendChild(li);
+		}
+		const fails = out.querySelectorAll('li.fail').length;
+		document.getElementById('verdict').textContent = fails
+			? `FAIL — ${fails} check(s) red` : `ALL GREEN — ${checks.length} checks`;
+		document.title = fails ? 'FAIL' : 'PASS';
+	})();
+</script>
