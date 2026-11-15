@@ -1,0 +1,57 @@
+{
+  "name": "@spintax/dice-lite",
+  "version": "0.1.0",
+  "description": "A procedural throw of dice as an SVG string. Seeded placement and values, brand-aware table palette, line or flat, classic pips, an optional CSS roll. Zero dependencies; runs in Node at build time and in the browser.",
+  "main": "dice.js",
+  "types": "dice.d.ts",
+  "files": [
+    "dice.js",
+    "dice.min.js",
+    "dice.d.ts",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "terser dice.js --compress --mangle -o dice.min.js",
+    "size": "node scripts/size.mjs",
+    "lint": "eslint .",
+    "test": "node --test \"test/*.test.mjs\"",
+    "prepack": "npm run build",
+    "gate:browser": "node scripts/browser-gate.mjs"
+  },
+  "config": {
+    "sizeBudget": 8192
+  },
+  "keywords": [
+    "dice",
+    "die",
+    "craps",
+    "casino",
+    "gambling",
+    "svg",
+    "illustration",
+    "generative",
+    "generative-art",
+    "procedural",
+    "hero-background",
+    "line-art",
+    "palette",
+    "ssr",
+    "static-site",
+    "zero-dependencies",
+    "vanilla-js"
+  ],
+  "author": "301st (https://301.st)",
+  "license": "MIT",
+  "homepage": "https://github.com/investblog/dice-lite#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/investblog/dice-lite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/investblog/dice-lite/issues"
+  },
+  "devDependencies": {
+    "eslint": "^10.11.0",
+    "terser": "^5.51.2"
+  }
+}
