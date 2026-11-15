@@ -89,6 +89,8 @@ test('no signature: the output names nothing, describes nothing, fingerprints no
 		Dice.toss({ seed: 'spintax.net', theme: 'light' }),
 		Dice.toss({ seed: 3, style: 'line', lattice: 'octagon', title: 'a throw' }),
 		Dice.toss({ seed: 4, size: 360, salt: 'sig' }),
+		Dice.toss({ seed: 5, motion: 'roll' }),
+		Dice.toss({ seed: 6, motion: 'roll', speed: 2, result: 'lucky7' }),
 		Dice.die({ seed: 2, value: 4 }),
 		Dice.die({ seed: 'icon', value: 6, theme: 'light' }),
 	];
@@ -96,10 +98,17 @@ test('no signature: the output names nothing, describes nothing, fingerprints no
 		assert.doesNotMatch(svg, /<!--|<metadata|<desc[\s>]|\sdata-|\bxlink|\bversion\s*=|dice|spintax|301/iu,
 			'no comments, metadata, desc, data-*, xlink, version, library or promotion names in the output');
 		for (const id of ids(svg)) assert.match(id, /^[a-z][a-z0-9]{5}$/u, `every id is a seeded token: ${id}`);
-		// M0 emits no classes and no custom properties at all; the motion work (M3) adds them,
-		// and its check must then assert the seeded-token shape — a fixed `class="felt"` or a
-		// library `--felt` would be a signature just like a fixed id
-		assert.doesNotMatch(svg, /\sclass=|--/u, 'M0 carries no classes and no custom properties');
+		if (svg.includes('<style>')) {
+			// the settle adds classes — each must be a seeded token too (the M0 comment's rule)
+			for (const cls of [...svg.matchAll(/\sclass="([^"]*)"/gu)].map((m) => m[1])) {
+				assert.match(cls, /^[a-z][a-z0-9]{5}$/u, `every class is a seeded token: ${cls}`);
+			}
+			assert.doesNotMatch(svg, /--/u, 'no custom properties in a motion picture');
+		} else {
+			// M0 carries no classes and no custom properties at all; the motion work adds them,
+			// and its check above asserts the seeded-token shape
+			assert.doesNotMatch(svg, /\sclass=|--/u, 'M0 carries no classes and no custom properties');
+		}
 	}
 });
 

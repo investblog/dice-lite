@@ -10,12 +10,13 @@ project: dice-lite
 Docs for developers and agents. `index.html` will be the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-11-16): M1 done.** The spec and ADRs 001–006 + the 002/004 addenda are in; the
-engine, the cascade and the subject are decided: the die is a **projected rounded cube**
-(three faces, seeded yaw, exact pip ellipses — ADR 002 addendum), drawn on the blank table
-(22 checks green, 4025 B gzipped of the provisional 8192). Every number below is either a family
-measurement carried over or a *provisional* forecast naming the milestone that replaces it
-with a measurement; this line is kept true at every milestone.
+**Status (2026-11-16): M3 done.** The library is feature-complete for v0.1: the projected
+cube on the brand table (ADR 002 addendum), the five results (ADR 003), the settle
+(ADR 005 addendum), `init()`, types — 38 checks green, the library 7227 B gzipped of the
+**frozen 7424** (ADR 006 addendum), a `dice: 3` throw averaging 9347 B raw / 2345 B gzip
+over 60 seeds. Every number below is either a family measurement carried over or a
+*provisional* forecast naming the milestone that replaces it with a measurement; this line is
+kept true at every milestone.
 
 ## The pitch, in one paragraph
 
@@ -153,13 +154,13 @@ Off by default. `motion: 'roll' | true`, `speed` divides the periods, `0` turns 
 returns the static bytes exactly.
 
 - **CSS, not SMIL** (roulette's ADR 006): `prefers-reduced-motion` cannot gate SMIL without script.
-- **`from` with no `to`.** Each die's group animates `from` a seeded start rotation (between
-  −3 and −1 full turns plus its placement angle) to identity, so the rest state *is* the
-  static picture and `animation: none` under reduced motion leaves the reader looking at the
-  throw, not at a blur.
+- **`from` with no `to`.** Each die settles — drops from at most one die-em and lands — to
+  identity, so the rest state *is* the static picture and `animation: none` under reduced
+  motion leaves the reader looking at the throw (ADR 005 addendum: the projected cube cannot
+  spin; the motion is a settle, the overshoot lives in the timing function).
 - Dice settle in deal order: die *i* runs `(0.8 + 0.3·i) / speed` seconds, staggered like
-  slots' reels stopped left to right. The overshoot is in the timing function
-  (`cubic-bezier(.2,.7,.3,1.08)`), not in extra keyframes.
+  slots' reels stopped left to right. The overshoot is in `cubic-bezier(.2,.7,.3,1.08)`,
+  not in extra keyframes.
 - Motion names — keyframes and classes — come from a stream of their own, keyed like the ids
   and salted with `speed`: switching the roll on renames nothing in the static picture, and two
   rolls that differ only in speed do not share a class whose timing the later `<style>` would win.
@@ -210,9 +211,11 @@ colour may go unused.*
   `u(k) = mulberry32(fmix32(seed32 ^ imul(fnv(k), 0x9E3779B9)))`; a string seed goes through
   FNV-1a — the family's `streams()`, ported unchanged.
 - **Namespaces:** `die:i:value` its top face · `die:i:orient` its yaw (a sign draw and a
-  magnitude draw) · `die:i:place` its slot jitter (a u and a v draw) · `table:*` the rail
-  width and corner, the lattice · `result:*` a preset's choices · `ids` (+ `salt`) tokens.
-  The pip radius and the shadows are constants (Machine space), not seeded draws.
+  magnitude draw) · `die:i:place` its slot jitter (a u and a v draw) · `die:i:drop` its settle
+  height · `table:*` the rail width and corner, the lattice · `result:*` a preset's choices
+  (`result:lucky7` a pair + `result:lucky7:swap` its order, `result:matched`,
+  `result:mixed:i`) · `ids` (+ `salt`) tokens. The pip radius and the shadows are constants
+  (Machine space), not seeded draws.
 - Ids are keyed by what is drawn, not only by the seed, so two different throws under one seed
   on one page never share an id (cards-lite's lesson; `salt` is for the same picture twice).
 - No `Math.random`, no `Date`. The default seed is fixed: a build must reproduce.
@@ -231,13 +234,13 @@ needed** — there is no fixed `d` to count (ADR 002); a pinned test asserts the
 ## Performance and size
 
 - Library: budget in `package.json` `config.sizeBudget`, measured by `npm run size` (terser in
-  process + gzip level 9, never the `gzip` CLI). **Provisional 8192 B at M0** (ADR 006) — the
-  siblings' number; frozen after M3 at the measured size + 2.5% rounded up to 128.
-  Forecast from the siblings' M0s (cards 3108, slots 3347): the engine port, `roles()` and the
-  blank table should land near **3.4 KB**.
-- Output, forecast for `dice: 3` (measured at M3 over 60 seeds): the felt, rail, lattice and
-  three dice should stay under **4 KB raw / 1.5 KB gzip**. `line` output drops the shade and
-  runs smaller, as it did in slots.
+  process + gzip level 9, never the `gzip` CLI). **Frozen at 7424 B (ADR 006 addendum)**: M3
+  measured 7227 B gzipped; +2.5% rounded up to 128. (The M0 forecast of 3.4 KB was the
+  flat-die library; the projected cube, its gradients and the settle cost the rest.)
+- Output, **measured at M3 over 60 seeds** for `dice: 3`: average **9347 B raw / 2345 B
+  gzip**, worst seed 10584 / 2517. The M-forecast of 4 KB raw was the flat die again; the
+  projected cube runs ~2.4× it — and still ~2.3 KB gzipped for a hero picture. `line`
+  changes the felt and rail treatment only; the dice are identical in both styles.
 
 ## Promotion
 
@@ -279,8 +282,11 @@ Dice.init(el, opts)          // browser → {el, get(), set(opts), destroy()}, o
 | `salt` | `''` | extra entropy for ids — the same picture twice on one page |
 | `title` | — | `role="img"` + escaped `aria-label`; otherwise `aria-hidden="true"` |
 
-`toss()` adds `dice` (2–5, default 3), `result` (`''`), `values` (`[]`), `lattice`
-(`'auto'` \| `'trigon'` \| `'hex'` \| `'octagon'` \| `'none'`) and `motion` / `speed`.
+`toss()` adds `dice` (2–5, default 3), `result` (`''`, one of `'lucky7' | 'snake' |
+'boxcars' | 'matched' | 'mixed'`), `values` (`[]` — pins exact top values; `null` or outside
+1–6 leaves the die to the seed/result), `lattice` (`'auto'` — or `'trigon' | 'hex' |
+'octagon' | 'none'`), `motion` (off — `'roll' | true` is a one-shot settle) and `speed`
+(`1` — divides the settle periods; `0` returns the static bytes exactly).
 `die()` adds `value` (1–6; the seed picks one when absent).
 
 ## Acceptance criteria (v0.1)

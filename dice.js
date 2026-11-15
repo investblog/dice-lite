@@ -287,6 +287,7 @@
 		for (var k in r) key += k === 'stroke' ? '' : c.col(k);
 		// normalised, so passing a default ('auto', '', []) is byte-identical to leaving it out
 		key += c.cab + c.w + c.p + (o.lattice || 'auto');
+		c.key = key;
 		c.tk = tokens(S, (o.salt || '') + key);
 		c.add = function (k, make) {
 			if (!seen[k]) { var id = c.tk(), m; seen[k] = id; m = make(); c.defs += m.replace('"%"', '"' + id + '"'); }
@@ -471,9 +472,9 @@
 		});
 	}
 
-	// one die as {shadow, body}: broad+contact shadows (kept in a layer below all dice) and the
-	// projected cube — silhouette, clipped softly-blurred faces, airbrush, exact pip ellipses
-	function die(c, top, yaw, x, y, scale) {
+	// one die as {shadow, content} — no placement wrapper: the caller owns the transform, so
+	// the motion group can sit between the placement and the content (ADR 005 addendum)
+	function die(c, top, yaw) {
 		var pre = REST[top], F = [], i;
 		for (i = 0; i < 6; i++) {
 			var f = CUBE[i];
@@ -524,16 +525,14 @@
 		// beat the uses' paints (and would render if the path sat in the body) — so the uses
 		// own every paint, and its d is computed from the yaw, keeping zero-d honest
 		c.defs += el('path', ['id', sid, 'd', sil]) + el('clipPath', ['id', cid], el('use', ['href', '#' + sid]));
-		var g = 'translate(' + n(x, 1) + ' ' + n(y, 1) + ')' + (scale !== 1 ? ' scale(' + scale + ')' : '');
-		var shadow = el('g', ['transform', g],
-			el('ellipse', ['cx', 0, 'cy', 118, 'rx', 132, 'ry', 24, 'fill', c.col('ink'), 'fill-opacity', '.16', 'filter', 'url(#' + d.b14 + ')']) +
-			el('ellipse', ['cx', 0, 'cy', 112, 'rx', 62, 'ry', 11, 'fill', c.col('ink'), 'fill-opacity', '.18', 'filter', 'url(#' + d.b5 + ')']));
-		var body = el('g', ['transform', g],
-			el('use', ['href', '#' + sid, 'fill', esc(c.dieUnder)]) +
-			el('g', ['clip-path', 'url(#' + cid + ')', 'filter', 'url(#' + d.sf + ')'], faces) +
-			el('use', ['href', '#' + sid, 'fill', 'url(#' + d.a + ')']) +
-			el('use', ['href', '#' + sid, 'fill', 'none', 'stroke', '#00000010', 'stroke-width', 2]));
-		return { shadow: shadow, body: body };
+		return {
+			shadow: el('ellipse', ['cx', 0, 'cy', 118, 'rx', 132, 'ry', 24, 'fill', c.col('ink'), 'fill-opacity', '.16', 'filter', 'url(#' + d.b14 + ')']) +
+				el('ellipse', ['cx', 0, 'cy', 112, 'rx', 62, 'ry', 11, 'fill', c.col('ink'), 'fill-opacity', '.18', 'filter', 'url(#' + d.b5 + ')']),
+			content: el('use', ['href', '#' + sid, 'fill', esc(c.dieUnder)]) +
+				el('g', ['clip-path', 'url(#' + cid + ')', 'filter', 'url(#' + d.sf + ')'], faces) +
+				el('use', ['href', '#' + sid, 'fill', 'url(#' + d.a + ')']) +
+				el('use', ['href', '#' + sid, 'fill', 'none', 'stroke', '#00000010', 'stroke-width', 2])
+		};
 	}
 
 	// ── the throw ───────────────────────────────────────────────────────────
@@ -542,6 +541,32 @@
 	// without moving a die already on the table (values, yaws and placements all hold). The
 	// pair is the constant core; the triangle, the diamond and the quincunx grow from it.
 	var SLOTS = [[-1, 0], [1, 0], [0, -1], [0, 1], [0, 0]];
+	var RESULTS = ['lucky7', 'snake', 'boxcars', 'matched', 'mixed'];
+	var BELT7 = [[1, 6], [2, 5], [3, 4]];
+
+	// Results are data (ADR 003): a name places values, nothing is scored. Each result reads
+	// its own streams; dice it does not name keep the seed's values.
+	function resultValue(r, i, S, used) {
+		if (r === 'snake') return i < 2 ? 1 : 0;
+		if (r === 'boxcars') return i < 2 ? 6 : 0;
+		if (r === 'lucky7' && i < 2) {
+			// one pair draw for the throw, one swap draw — both dice name it
+			if (!used.l7) {
+				var p = BELT7[Math.floor(S('result:lucky7')() * 3)];
+				used.l7 = S('result:lucky7:swap')() < 0.5 ? p : [p[1], p[0]];
+			}
+			return used.l7[i];
+		}
+		if (r === 'matched') return 1 + Math.floor(S('result:matched')() * 6);
+		if (r === 'mixed') {
+			var avail = [];
+			for (var v = 1; v <= 6; v++) if (!used[v]) avail.push(v);
+			var val = avail[Math.floor(S('result:mixed:' + i)() * avail.length)];
+			used[val] = 1;
+			return val;
+		}
+		return 0; // the seed decides
+	}
 
 	function toss(opts) {
 		var o = opts || {}, k = Math.max(2, Math.min(5, Math.round(o.dice) || 3));
@@ -562,21 +587,48 @@
 		var rect = function (x, y, w, h, r, paint) {
 			return el('rect', ['x', n(x, p), 'y', n(y, p), 'width', n(w, p), 'height', n(h, p), 'rx', r ? n(r, p) : null].concat(paint));
 		};
+		// values: values pin > result names > the seed decides (spec: Results). ALL valid pins
+		// mark `used` before any result draw — mixed must never repeat one, early or late
+		var pins = o.values || [], res = RESULTS.indexOf(o.result) >= 0 ? o.result : '', used = {};
+		var seeded = function (i) { return 1 + Math.floor(S('die:' + i + ':value')() * 6); };
+		var values = [];
+		for (i = 0; i < k; i++) {
+			var pin = Math.round(pins[i]);
+			if (pin >= 1 && pin <= 6) { values[i] = pin; used[pin] = 1; }
+		}
+		for (i = 0; i < k; i++) {
+			if (values[i] != null) continue;
+			if (res) { var rv = resultValue(res, i, S, used); values[i] = rv || seeded(i); }
+			else values[i] = seeded(i);
+		}
+		// the roll (ADR 005 + addendum): a settle, off by default. Names from a stream of their
+		// own salted with speed; the animated group never carries a transform attribute
+		var speed = o.speed == null ? 1 : o.speed, mo = !!o.motion && speed > 0, css = '', tk = null;
+		if (mo) tk = tokens(S, 'motion' + (o.salt || '') + c.key + speed);
 		// the dice: value, yaw and placement each from their own stream; depth from the slot,
 		// so appending never re-rolls a die. Light overlap is allowed — dice touch like on a
 		// real table; shadows sit in a layer below, dice paint far-to-near by ground position
 		var dice = [];
 		for (i = 0; i < k; i++) {
-			var value = 1 + Math.floor(S('die:' + i + ':value')() * 6);
 			var yaw = (S('die:' + i + ':orient')() < 0.5 ? -1 : 1) * (YAW[0] + YAW[1] * S('die:' + i + ':orient:yaw')());
 			var px = SLOTS[i][0] * SLOT_A + (S('die:' + i + ':place')() - 0.5) * 2 * JIT * SLOT_A;
 			var py = SLOTS[i][1] * SLOT_A + (S('die:' + i + ':place:v')() - 0.5) * 2 * JIT * SLOT_A;
 			var scale = 0.9 + 0.1 * (SLOTS[i][1] + 1) / 2;
-			dice.push({ x: px, y: py, scale: scale, d: die(c, value, yaw, px, py, scale) });
+			var g = 'translate(' + n(px, 1) + ' ' + n(py, 1) + ')' + (scale !== 1 ? ' scale(' + scale + ')' : '');
+			var dd = die(c, values[i], yaw);
+			var inner = dd.content, cls = null;
+			if (mo) {
+				var kf = tk(), drop = 30 + 40 * S('die:' + i + ':drop')();
+				cls = tk();
+				css += '@keyframes ' + kf + '{from{transform:translateY(' + n(-drop, 1) + 'px)}}.' + cls +
+					'{animation:' + kf + ' ' + n((0.8 + 0.3 * i) / speed, 2) + 's cubic-bezier(.2,.7,.3,1.08)}';
+				inner = el('g', ['class', cls], inner);
+			}
+			dice.push({ x: px, y: py, cls: cls, shadow: el('g', ['transform', g], dd.shadow), body: el('g', ['transform', g], inner) });
 		}
 		dice.sort(function (a, b) { return a.y - b.y; });
 		var shadows = '', bodies = '';
-		for (i = 0; i < k; i++) { shadows += dice[i].d.shadow; bodies += dice[i].d.body; }
+		for (i = 0; i < k; i++) { shadows += dice[i].shadow; bodies += dice[i].body; }
 		// seam AO where dice touch: a small dark pool under the contact point, in the shadow layer
 		for (i = 0; i < k; i++) {
 			for (var j = i + 1; j < k; j++) {
@@ -586,8 +638,15 @@
 						'rx', 36, 'ry', 9, 'fill', c.col('ink'), 'fill-opacity', '.14', 'filter', 'url(#' + c.die.b5 + ')']);
 			}
 		}
-		// the rail, the felt, the lattice; then the shadows and the dice (spec: Anatomy)
-		var out = rect(-fx - rw, -fy - rw, 2 * (fx + rw), 2 * (fy + rw), rc, rule(c.col('rail')));
+		// the rail, the felt, the lattice; then the shadows and the dice. The roll's <style>
+		// leads the picture (document-global CSS); reduced motion restores the static bytes
+		var out = '';
+		if (mo) {
+			var clss = [];
+			for (i = 0; i < k; i++) if (dice[i].cls) clss.push('.' + dice[i].cls);
+			out = el('style', [], css + '@media(prefers-reduced-motion:reduce){' + clss.join(',') + '{animation:none}}');
+		}
+		out += rect(-fx - rw, -fy - rw, 2 * (fx + rw), 2 * (fy + rw), rc, rule(c.col('rail')));
 		out += rect(-fx, -fy, 2 * fx, 2 * fy, Math.max(0, rc - rw), rule(c.col('felt')));
 		out += rect(-fx, -fy, 2 * fx, 2 * fy, Math.max(0, rc - rw), tile(c, trim, '.25'));
 		out += shadows + bodies;
@@ -602,9 +661,27 @@
 		dieDefs(c);
 		var value = Math.round(o.value) >= 1 && Math.round(o.value) <= 6 ? Math.round(o.value) : 1 + Math.floor(S('die:0:value')() * 6);
 		var yaw = (S('die:0:orient')() < 0.5 ? -1 : 1) * (YAW[0] + YAW[1] * S('die:0:orient:yaw')());
-		var d = die(c, value, yaw, 0, 0, 1);
-		return wrap(o, c, [-HX, -HY, 2 * HX, 2 * HY + 42], d.shadow + d.body);
+		var d = die(c, value, yaw);
+		return wrap(o, c, [-HX, -HY, 2 * HX, 2 * HY + 42], el('g', ['transform', 'translate(0 0)'], d.shadow + d.content));
 	}
 
-	return { toss: toss, die: one, palette: palette };
+	// Browser convenience: draw a throw into an element and keep it drawn. Options merge
+	// across set(), so pins stay pinned; a settle plays once per draw (cards-lite's init).
+	function init(target, opts) {
+		var host = typeof target === 'string' ? document.querySelector(target) : target, cur = {};
+		if (!host) return null;
+		var set = function (o) {
+			for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) cur[k] = o[k];
+			host.innerHTML = toss(cur);
+		};
+		set(opts || {});
+		return {
+			el: host,
+			get: function () { var g = {}; for (var k in cur) g[k] = cur[k]; return g; },
+			set: set,
+			destroy: function () { host.innerHTML = ''; }
+		};
+	}
+
+	return { toss: toss, die: one, palette: palette, init: init };
 });

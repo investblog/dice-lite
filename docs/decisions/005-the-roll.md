@@ -38,3 +38,12 @@ whatever two motions share (cards-lite's review finding, re-earned in slots' M4)
 - The browser gate runs the roll in three engines × both motion modes, and `--mutate` includes
   "reduced motion misses a die".
 - A permanent jitter, a dice cup shake or a reroll is backlog, not v0.1.
+
+## Addendum 2026-11-16 (M1/M3) — the roll is a settle, not a spin
+
+The subject became a projected cube (ADR 002 addendum): a 2D rotation of the baked picture
+would spin it like a flat sticker, not tumble a die. The motion keeps everything else —
+CSS, `from` with no `to`, deal-order stagger, the overshoot timing function, the salted
+motion-name stream, `speed: 0` = the static bytes — and replaces the spin with a **settle**:
+each die drops from a short height (`from translateY`, one die-em at most) and lands with
+the overshoot in the cubic-bezier. Heavy casino dice do not fly; they arrive.

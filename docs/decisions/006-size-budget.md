@@ -30,3 +30,15 @@ Forecast from the siblings' M0s (cards 3108 B, slots 3347 B, both measured): the
 - `npm run size` reports against `config.sizeBudget` in package.json; CI fails over it.
 - The freeze is recorded here as an addendum at M3, with the measured number and the forecast
   error, as slots' ADR 007 recorded its M4 freeze.
+
+## Addendum 2026-11-16 (M3) — frozen at 7424 B
+
+Measured `npm run size` at M3: **7227 B gzipped** → frozen budget **7424 B**
+(+2.5% = 7407.7, rounded up to 128). `config.sizeBudget` set to 7424.
+
+Forecast error, recorded as the family records them: the M0 forecast of 3.4 KB assumed the
+flat one-face die. The on-screen ritual (ADR 002 addendum) made the subject a projected cube
+with gradients, a settle and a seam pool; the honest number is ~2.1× the forecast. The
+output forecast missed the same way: `dice: 3` measures **9347 B raw / 2345 B gzip** on
+average over 60 seeds (worst seed 10584 / 2517) — ~2.4× the 4 KB forecast, and still a
+two-kilobyte hero picture. The trims that survive are measured, never reasoned.

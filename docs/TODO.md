@@ -17,10 +17,12 @@ along the way. The milestones are the v0.1 plan; this list is its public index.
   (ADR 004 addendum: the cascade as built stands; colours stay token-adaptive machinery).
   The bigger M1 outcome: the die itself — the on-screen ritual plus Codex's review moved the
   subject from one flat face to a projected rounded cube (ADR 002 addendum); overlap allowed.
-- [ ] M2 — the dice: the face renderer, the shade, the canonical slots and the jitter, the
-  shadows, `dice` appending, `die()`. Contact sheet at M2.
-- [ ] M3 — the five results with their longhand checker, the roll (ADR 005), `init()`,
-  `dice.d.ts`, output size measured, the budget frozen (ADR 006 addendum).
+- [x] M2 — the projected-cube renderer (ADR 002 addendum): seeded yaw, exact pip ellipses,
+  the rest-table net, nested slots with `dice` appending, overlap by depth, `die()`.
+  Codex review: 17 findings across two rounds, all fixed (double-yaw pips, the clipPath/use
+  structure, add3(0), depth scale, the pins contract, seam shadows, stronger tests).
+- [x] M3 — the five results with their longhand checker, the settle (ADR 005 addendum),
+  `init()`, `dice.d.ts`, output size measured, the budget frozen at 7424 (ADR 006 addendum).
 - [ ] M4 — `test/verify.html` + `--mutate` in three engines × two motion modes; `index.html`;
   CI/release/bootstrap-publish workflows; README, CHANGELOG, RELEASING.
 - [ ] M5 — integration in a static site, then `0.1.0` on the user's go: repo, bootstrap
