@@ -12,7 +12,7 @@ along the way. The milestones are the v0.1 plan; this list is its public index.
 
 ## v0.1
 
-- [ ] M0 — bootstrap, spec, ADRs 001–006, the engine port, `palette()`, the blank `toss()`.
+- [x] M0 — bootstrap, spec, ADRs 001–006, the engine port, `palette()`, the blank `toss()`.
 - [ ] M1 — the felt/rail/trim cascade prototyped outside the library and decided by the user
   (ADR 004 addendum).
 - [ ] M2 — the dice: the face renderer, the shade, the canonical slots and the jitter, the

@@ -10,8 +10,11 @@ project: dice-lite
 Docs for developers and agents. `index.html` will be the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-11-15): v0.1 in planning.** The spec and ADRs 001–006 are written; no code yet.
-M0 ports the family engine and draws the blank table. Every number below is either a family
+**Status (2026-11-15): M0 done.** The spec and ADRs 001–006 are written; the engine port,
+`roles()`/`palette()` and the blank `toss()` (felt, rail, the lattice) are in and the test
+gate is green — 22 checks, the palette-parity fixture to the byte, the library 4025 B
+gzipped against the provisional 8192 budget, and the Codex review gate has run over the diff
+(six findings, all fixed and re-reviewed). Every number below is either a family
 measurement carried over or a *provisional* forecast naming the milestone that replaces it
 with a measurement; this line is kept true at every milestone.
 
@@ -170,7 +173,7 @@ casino table puts them:
 | Role | Where it comes from | Draws |
 |---|---|---|
 | `felt` | the first chromatic brand colour (chroma ≥ 12); else the grey one; else the spintax blue | the table surface |
-| `rail` | the second chromatic brand colour when one is left; else a darker `derive()` stop of the felt | the table's padded edge |
+| `rail` | the next chromatic brand colour once the felt and the trim's gold are claimed; else a darker `derive()` stop of the felt | the table's padded edge |
 | `trim` | metal, as in slots: brass from a gold-hue brand colour at lower chroma, chrome for a grey brand | the lattice's fine lines, the table line |
 | `die` | the family's paper formula, lch(96.5, min(C·0.08, 4), H) — **both themes** | the die bodies |
 | `pip` | near-black, cards' `spade` formula | the pips |
@@ -189,7 +192,10 @@ cabinet. Provisional until then: the `rail` cascade above, and the light-theme `
 escapes `" < > &`. `'auto'` unpins.
 
 **The invariant:** *every throw reads as dice on a table whatever the brand — paper dice, black
-pips, a brand-coloured felt; and every brand colour given is used.*
+pips, a brand-coloured felt; and the brand lands on the table — the first chromatic colour
+felts it, the next colour left pads the rail. What a third colour does — the lattice/trim
+cascade or nothing — is the M1 addendum's question (ADR 004), and until it is answered such a
+colour may go unused.*
 
 ## Determinism
 
