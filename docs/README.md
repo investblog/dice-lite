@@ -10,11 +10,10 @@ project: dice-lite
 Docs for developers and agents. `index.html` will be the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-11-15): M0 done.** The spec and ADRs 001–006 are written; the engine port,
-`roles()`/`palette()` and the blank `toss()` (felt, rail, the lattice) are in and the test
-gate is green — 22 checks, the palette-parity fixture to the byte, the library 4025 B
-gzipped against the provisional 8192 budget, and the Codex review gate has run over the diff
-(six findings, all fixed and re-reviewed). Every number below is either a family
+**Status (2026-11-16): M1 done.** The spec and ADRs 001–006 + the 002/004 addenda are in; the
+engine, the cascade and the subject are decided: the die is a **projected rounded cube**
+(three faces, seeded yaw, exact pip ellipses — ADR 002 addendum), drawn on the blank table
+(22 checks green, 4025 B gzipped of the provisional 8192). Every number below is either a family
 measurement carried over or a *provisional* forecast naming the milestone that replaces it
 with a measurement; this line is kept true at every milestone.
 
@@ -32,41 +31,45 @@ for less motion. Zero dependencies, a few KB.
 
 ## The load-bearing idea
 
-A die is read from **one face**, and a face is a **value on a 3×3 lattice**. The eye reads a
-die because pips sit where a real die's pips sit, not because anything is drawn in 3D. So:
+A die is read from **its faces**, and a face is a **value on a 3×3 lattice** — but a die is
+*believed* only as a cube. So:
 
-> **Every pip is a cell of a 3×3 grid; every die is a placement on the table. The value alone
-> gives its pips; the seed alone gives the placement. A body is a `<rect>`, a pip is a
-> `<circle>` — the picture carries no path data at all.**
+> **Every die is a rounded cube, projected at runtime from its own seeded orientation. Each
+> face carries its value on the 3×3 lattice; the picture carries no path data the seed cannot
+> change — every coordinate is computed.**
 
-Nothing else in the picture knows it is looking at dice. The value-to-pips table is six rows of
-data, not drawings; the throw layout is canonical slots plus seeded jitter, so dice never
-overlap by construction. That is the analogue of cards' "a spread compiles to placements" and
-slots' "every cell is a reel index and an angle": the whole picture is two nested lattices and
-zero `d` attributes.
+Nothing else in the picture knows it is looking at dice. The cube is orthographic-baked at
+~52°: a seeded yaw (`die:i:orient`, signed 0.36–0.44 rad — the readable range), the six
+values on a real net (opposite sides sum to seven by construction: the die rests on the face
+opposite its top value), the silhouette a rounded convex hull of the eight projected corners,
+the pips exact projected ellipses. That is the analogue of cards' "a spread compiles to
+placements" and slots' "every cell is a reel index and an angle": the whole picture is
+computed geometry and zero fixed `d` attributes.
 
-A v0.1 die shows its top face only. A cube with three faces (and the opposite-sides-sum-to-seven
-constraint) is backlog — the single face is how dice read at hero size, and it is the family
-way: draw the minimum that reads.
+A true perspective cube (vanishing points, animated re-projection) is backlog — an ADR of
+its own (ADR 002 addendum).
 
 ## Machine space
 
-Origin at the centre of the table, y down. Constants are looked at on screen at M2 and kept or
-changed there; these are the starting numbers.
+Origin at the centre of the table, y down. Constants were tuned to the reference at M1
+(with Codex's review); M2 looks at them on the real table and keeps or changes them there.
 
 | Constant | Value | What |
 |---|---|---|
-| `EM` | 200 | the die face, square, origin at its centre |
-| `PIP` | 11–14 | pip radius, one seeded draw per throw (`table:pips`) |
-| `CORNER` | 26–40 | the body rect's `rx`, one seeded draw per die |
+| `H` | 100 | the die's half-edge — the cube is 2H on a side, centred on its origin |
+| `PITCH` | 0.91 rad | camera elevation ≈ 52°, orthographic bake |
+| `YAW` | ±(0.36–0.44) | one seeded draw per die (`die:i:orient`): sign × (0.36 + 0.08·u) |
+| `RS` / `RF` | 44 / 9 | silhouette rounding / face-quad rounding (projection units) |
+| `PIP` | 19 | pip radius in 3D units — a circle on the face, drawn as the exact projected ellipse |
 | `FELT` | margin 90 | felt inset from the viewBox at the long side, 64 at the short |
 | `RAIL` | 22–34 | the rail width, one seeded draw (`table:rail`) |
-| `JITTER` | ±0.06, ±14° | placement and rotation scatter around the canonical slot |
-| `SHADOW` | α .15–.22 | one ellipse per die, `ink`, offset down-left of the die |
+| `JITTER` | ±0.06 | positional scatter around the canonical slot (yaw is the orientation) |
+| `SHADOW` | broad + contact | broad ellipse α .16 blur 14 + contact α .18 blur 5; a seam AO where dice touch |
 
-Pip pitch is `EM/3`: the 3×3 grid cells are centred at ±`EM/6` and 0 on both axes, so a pip at
-"top left" is the same cell whatever the value. The viewBox follows `dice`: the felt is sized
-to the canonical slots plus margin, so `dice` appends without redrawing the table's role.
+The felt is sized to the **projected** dice: the cube's half-extents at the yaw range are
+≈131 × 164, ~17% over the flat half-diagonal, and the canonical slot clearance accounts for
+it. The viewBox follows `dice`: the felt is sized to the canonical slots plus margin, so
+`dice` appends without redrawing the table's role.
 
 ### Anatomy of a throw
 
@@ -74,39 +77,39 @@ to the canonical slots plus margin, so `dice` appends without redrawing the tabl
 |---|---|---|
 | Felt | the table surface; carries the lattice at a low weight | no |
 | Rail | a padded ring around the felt in `rail` | width, corner |
-| Shadow | one `<ellipse>` per die under the body, offset down-left | length, α |
-| Die body | one `<rect rx>` per die in `die` — paper in both themes | corner radius |
-| Pips | `<circle>`s in `pip` on the 3×3 grid | radius (per throw) |
-| Shade | flat only: the body painted again in `#000` at low α, masked to where the body is **not** covered by itself shifted up and right | no |
+| Shadow | broad + contact `<ellipse>`s per die, seam AO where dice touch | — |
+| Die | a rounded cube: silhouette = rounded hull of the 8 projected corners; faces = projected quads under a shared airbrush | yaw, value |
+| Pips | exact projected ellipses in `pip` on each visible face's 3×3 lattice | — |
 
-All of it is built from the seeded numbers and the family engine, so the picture contributes
-**no fixed `d` at all** — the inverted counted exception of ADR 002, pinned by test.
+All of it is computed from the seeded numbers, so the picture contributes **no fixed `d` at
+all** — the inverted counted exception of ADR 002 (addendum 2026-11-16), pinned by test.
 
 The table follows the **table style**: `style` when given, otherwise `flat` in the dark theme
 and `line` in the light one — the felt is the large flat area, and a filled body over a white
 page was a pastel field in every sibling that tried it. A `line` table draws felt and rail as
-rules in `outline`. The dice follow `style` only in their bodies' treatment: paper with black
-pips reads as dice in both themes either way.
+rules in `outline`. The dice are the same paper in both themes.
 
 ### The throw layout
 
 `dice` is 3 (default), 2–5, and it **appends**: under one seed, dice 0–1 of a four-dice throw
-are the two dice of `dice: 2` — same values, same rotations, same jitter. Each die draws its
-own placement from `die:i:place` as `(u, v)` in the felt's unit square plus a rotation in
-±14°, so the count never moves another die's stream.
+are the two dice of `dice: 2` — same values, same yaws, same placements. Each die draws its
+own placement from `die:i:place` as `(u, v)` around its canonical slot, and its orientation
+from `die:i:orient`, so the count never moves another die's stream.
 
-Overlaps are ruled out by construction, not by rejection: the felt carries **canonical slots**
-per count (2: a pair at the thirds; 3: a triangle; 4: a square; 5: a quincunx), and the seed
-jitters each die inside its slot. Painting never learns the layout — the slots are data, the
-renderer reads placements (cards' rule, slots' inheritance).
+The felt carries **canonical slots** per count (2: a pair at the thirds; 3: a triangle; 4: a
+square; 5: a quincunx), and the seed jitters each die inside its slot. Light overlap is
+allowed — dice touch like on a real table: the paint order sorts whole dice by their
+screen-ground position (far first), shadows sit in a layer below all dice. Painting never
+learns the layout — the slots are data, the renderer reads placements (cards' rule, slots'
+inheritance).
 
 **Judge a die at table size, not at icon size** — cards-lite's club lesson, which here means
 the pips stay readable at 360 px wide.
 
 ## Values — what the seed shows
 
-Each die shows one face, a value 1–6 drawn from `die:i:value`. The value-to-pips table is
-fixed data, the classic layouts every reader already knows:
+Each die's **top face** is a value 1–6, drawn from `die:i:value`. The value-to-pips table is
+fixed data, the classic layouts every reader already knows — on every face:
 
 | Value | Pips (3×3 cells) |
 |---|---|
@@ -117,9 +120,11 @@ fixed data, the classic layouts every reader already knows:
 | 5 | four corners, centre |
 | 6 | two columns of three |
 
-The seed may set any value on any die: a random throw shows doubles every sixth seed on
-average, and that is fine — a throw is a picture, not odds (ADR 003). `die()` draws one die on
-its em, value pinned by option or by the seed.
+The visible side values follow a real net: opposite sides sum to seven **by construction** —
+the die rests on the face opposite its top value (ADR 002 addendum). The seed may set any
+value on any die: a random throw shows doubles every sixth seed on average, and that is fine —
+a throw is a picture, not odds (ADR 003). `die()` draws one die on its em, value pinned by
+option or by the seed.
 
 ## Results — presets are data
 
@@ -280,8 +285,8 @@ Dice.init(el, opts)          // browser → {el, get(), set(opts), destroy()}, o
 - `toss()` and `die()` run in Node ESM, CommonJS and a `<script>`.
 - Same (seed, options) → identical bytes; the brand/seed independence tests pass, including
   "brand never changes which value is shown", and `dice` appends.
-- The no-fixed-path test passes: the seed-invariant `d` set of every output is empty — pips are
-  circles, bodies are rects.
+- The no-fixed-path test passes: the seed-invariant `d` set of every output is empty — every
+  coordinate is computed from the seed (ADR 002 addendum).
 - Every result satisfies a check **written longhand in the test file** — the library has no
   evaluator and must not grow one.
 - Both styles × both themes look right in a browser — a contact sheet shown to the user at M1

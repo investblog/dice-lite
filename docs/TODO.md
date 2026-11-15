@@ -13,8 +13,10 @@ along the way. The milestones are the v0.1 plan; this list is its public index.
 ## v0.1
 
 - [x] M0 — bootstrap, spec, ADRs 001–006, the engine port, `palette()`, the blank `toss()`.
-- [ ] M1 — the felt/rail/trim cascade prototyped outside the library and decided by the user
-  (ADR 004 addendum).
+- [x] M1 — the felt/rail/trim cascade confirmed on the prototype and decided by the user
+  (ADR 004 addendum: the cascade as built stands; colours stay token-adaptive machinery).
+  The bigger M1 outcome: the die itself — the on-screen ritual plus Codex's review moved the
+  subject from one flat face to a projected rounded cube (ADR 002 addendum); overlap allowed.
 - [ ] M2 — the dice: the face renderer, the shade, the canonical slots and the jitter, the
   shadows, `dice` appending, `die()`. Contact sheet at M2.
 - [ ] M3 — the five results with their longhand checker, the roll (ADR 005), `init()`,

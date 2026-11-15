@@ -33,3 +33,17 @@ is backlog; one face is how dice read at hero size, and the family draws the min
 - The value-to-pips table is data in the library, readable and checkable longhand in the tests.
 - `die()` and `toss()` share the same face renderer; an icon is a throw of one on a blank em.
 - A future perspective view is an ADR of its own and re-opens the counted-exception question.
+
+## Addendum 2026-11-16 (M1, decided on screen with Codex's review) — the subject is a projected cube
+
+The single-face scope is reversed: a die reads as dice only as a **rounded cube with three
+visible faces** — the casino-dice reference the art director picked. What survives of this
+ADR: the picture still carries **no fixed path data** — cube, faces and pips are projected
+at runtime from a seeded orientation (`die:i:orient`, signed magnitude 0.36–0.44 rad), so
+the seed-invariant `d` set stays empty and its test stands unchanged. The 3×3 lattice
+survives as the pip layout on each face; pips are circles in 3D, drawn as exactly projected
+ellipses. Opposite-sides-sum-to-seven returns, but by construction: the die rests on the
+face opposite its top value (a six-entry rest-rotation table), so visible values are always
+consistent with a real die. True perspective (vanishing points) stays backlog — this is an
+orthographic bake at ~52°.
+
