@@ -17,5 +17,5 @@ bump.
   frosted acrylic — silhouette fill at 55%, outline seams, solid pips, no gradients emitted
   (ADR 007; the alpha measured by raster subtraction). The seams were then trimmed to stop
   where the corner rounding starts — nose and silhouette alike — after the square-front-corner
-  defect was caught on the cover image (ADR 007 addendum). Library 8432 B gzipped (budget
-  8448, ADR 006 addendum); a `dice: 3` throw averages 9347 B raw / 2345 B gzip over 60 seeds.
+  defect was caught on the cover image (ADR 007 addendum). Library 8536 B gzipped (budget
+  8704, ADR 006 addendum); a `dice: 3` throw averages 9347 B raw / 2345 B gzip over 60 seeds.

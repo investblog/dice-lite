@@ -290,7 +290,7 @@
 		// salt remains for the same picture twice.
 		for (var k in r) key += k === 'stroke' ? '' : c.col(k);
 		// normalised, so passing a default ('auto', '', []) is byte-identical to leaving it out
-		key += c.cab + c.w + c.p + (o.lattice || 'auto');
+		key += c.cab + c.w + c.p + (o.lattice || 'auto') + (o.body === 'glass' ? 'g' : '');
 		c.key = key;
 		c.tk = tokens(S, (o.salt || '') + key);
 		c.add = function (k, make) {
@@ -466,7 +466,12 @@
 				el('filter', ['id', b5, 'x', '-60%', 'y', '-60%', 'width', '220%', 'height', '220%'], el('feGaussianBlur', ['stdDeviation', 5]));
 			// a glass body draws no gradients: the frost is a flat fill, the pips solid — only
 			// the shadows' blurs come out of the defs (ADR 007)
-			if (glass) { c.dieGlass = colMix(die, 6); return blur; }
+			if (glass) {
+				// an arbitrary CSS pin is the frost verbatim, like dieUnder in paper — only a
+				// parseable colour can be lightened (spec: Pins)
+				c.dieGlass = t ? die : colMix(die, 6);
+				return blur;
+			}
 			return g(gt, stops, ['.25', 0], ['.6', 1]) + g(gl, sl, ['.2', 0], ['.7', 1]) + g(gr, sr, ['.2', 0], ['.7', 1]) +
 				el('radialGradient', ['id', gp, 'cx', '.31', 'cy', '.27', 'r', '.78'],
 					el('stop', ['offset', 0, 'stop-color', esc(ps[0])]) + el('stop', ['offset', '.1', 'stop-color', esc(ps[1])]) +
@@ -567,14 +572,16 @@
 			if (nose) {
 				if (Math.abs(W[0] - nose[0]) + Math.abs(W[1] - nose[1]) > 0.1) { var sw = W; W = V; V = sw; }
 				var ux = V[0] - W[0], uy = V[1] - W[1], luv = Math.sqrt(ux * ux + uy * uy);
-				var tn = Math.min(luv, RS);
-				for (var s1 = 0; s1 < 3; s1++) if (s1 !== i) {
-					var O = Math.abs(SP[s1][0][0] - W[0]) + Math.abs(SP[s1][0][1] - W[1]) < 0.1 ? SP[s1][1] : SP[s1][0];
-					var vx = O[0] - W[0], vy = O[1] - W[1];
-					var lw = Math.min(luv, Math.sqrt(vx * vx + vy * vy)) / 3;
-					if (lw < tn) tn = lw;
+				if (luv > 1e-6) {
+					var tn = Math.min(luv, RS);
+					for (var s1 = 0; s1 < 3; s1++) if (s1 !== i) {
+						var O = Math.abs(SP[s1][0][0] - W[0]) + Math.abs(SP[s1][0][1] - W[1]) < 0.1 ? SP[s1][1] : SP[s1][0];
+						var vx = O[0] - W[0], vy = O[1] - W[1];
+						var lw = Math.min(luv, Math.sqrt(vx * vx + vy * vy)) / 3;
+						if (lw < tn) tn = lw;
+					}
+					W = [W[0] + ux / luv * tn, W[1] + uy / luv * tn];
 				}
-				W = [W[0] + ux / luv * tn, W[1] + uy / luv * tn];
 				stops.push(W);
 			}
 			// the silhouette end: meet the rounded-corner Q-curve at V (rquad2's construction)
@@ -587,37 +594,42 @@
 				var pv = hp[(vi - 1 + hp.length) % hp.length], nx2 = hp[(vi + 1) % hp.length];
 				var ex = V[0] - pv[0], ey = V[1] - pv[1], fx = nx2[0] - V[0], fy = nx2[1] - V[1];
 				var le = Math.sqrt(ex * ex + ey * ey), lf = Math.sqrt(fx * fx + fy * fy);
-				if (le > 1e-6 && lf > 1e-6) {
+				var Dx = V[0] - W[0], Dy = V[1] - W[1], d2n = Dx * Dx + Dy * Dy;
+				if (le > 1e-6 && lf > 1e-6 && d2n > 1e-6) {
 					var kk = Math.min(RS, le / 3, lf / 3);
 					var m0 = [V[0] - ex / le * kk, V[1] - ey / le * kk], m1 = [V[0] + fx / lf * kk, V[1] + fy / lf * kk];
-					var Dx = V[0] - W[0], Dy = V[1] - W[1];
 					var c1 = m0[0], c2 = 2 * (V[0] - m0[0]), c3 = m0[0] - 2 * V[0] + m1[0];
 					var c4 = m0[1], c5 = 2 * (V[1] - m0[1]), c6 = m0[1] - 2 * V[1] + m1[1];
 					var qa = c3 * Dy - c6 * Dx, qb = c2 * Dy - c5 * Dx, qc = (c1 - W[0]) * Dy - (c4 - W[1]) * Dx;
-					var disc = qb * qb - 4 * qa * qc, ts = null;
-					if (Math.abs(qa) < 1e-9) { if (Math.abs(qb) > 1e-9) { var t0 = -qc / qb; if (t0 > 0 && t0 < 1) ts = t0; } }
-					else if (disc >= 0) {
-						var sq2 = Math.sqrt(disc), best = null, d2n = Dx * Dx + Dy * Dy;
-						for (var sg = -1; sg <= 1; sg += 2) {
-							var t1 = (-qb + sg * sq2) / (2 * qa);
-							if (t1 <= 0 || t1 >= 1) continue;
-							// the crossing must lie ON the seam segment (s in 0..1 measured
-							// from W), and the exit nearest the corner wins — the other root
-							// sits on the line's extension, outside the silhouette
-							var bx = c1 + t1 * c2 + t1 * t1 * c3 - W[0], by = c4 + t1 * c5 + t1 * t1 * c6 - W[1];
-							var ss = (bx * Dx + by * Dy) / d2n;
-							if (ss > 0 && ss < 1 && (best == null || ss > best.s)) best = { s: ss, t: t1 };
-						}
-						// pull the end one stroke-width back inside the silhouette: a hairline gap
-						// reads as "the edge meets the boundary" and never merges into the
-						// outline — which matters most in glass, where bold seams cross
-						// overlapping dice
-						if (best) {
-							var gs = (glass ? 2.2 : 1.4) * c.w / Math.sqrt(d2n);
-							V = [W[0] + Dx * (best.s - gs), W[1] + Dy * (best.s - gs)];
+					var cand = [];
+					if (Math.abs(qa) < 1e-9) { if (Math.abs(qb) > 1e-9) { var t0 = -qc / qb; if (t0 > 0 && t0 < 1) cand.push(t0); } }
+					else {
+						var disc = qb * qb - 4 * qa * qc;
+						if (disc >= 0) {
+							var sq2 = Math.sqrt(disc);
+							for (var sg = -1; sg <= 1; sg += 2) {
+								var t1 = (-qb + sg * sq2) / (2 * qa);
+								if (t1 > 0 && t1 < 1) cand.push(t1);
+							}
 						}
 					}
-					if (ts != null) V = [c1 + ts * c2 + ts * ts * c3, c4 + ts * c5 + ts * ts * c6];
+					// the crossing must lie ON the seam segment (s in 0..1 measured from W),
+					// and the exit nearest the corner wins — the other root sits on the line's
+					// extension, outside the silhouette
+					var best = null;
+					for (var ci = 0; ci < cand.length; ci++) {
+						var t2 = cand[ci];
+						var bx = c1 + t2 * c2 + t2 * t2 * c3 - W[0], by = c4 + t2 * c5 + t2 * t2 * c6 - W[1];
+						var ss = (bx * Dx + by * Dy) / d2n;
+						if (ss > 0 && ss < 1 && (best == null || ss > best)) best = ss;
+					}
+					// pull the end one stroke-width back inside the silhouette: a hairline gap
+					// reads as "the edge meets the boundary" and never merges into the outline
+					// — which matters most in glass, where bold seams cross overlapping dice
+					if (best != null) {
+						var gs = (glass ? 2.2 : 1.4) * c.w / Math.sqrt(d2n);
+						V = [W[0] + Dx * (best - gs), W[1] + Dy * (best - gs)];
+					}
 				}
 			}
 			seams += el('path', ['clip-path', glass ? null : 'url(#' + cid + ')',
@@ -645,7 +657,7 @@
 			shadow: el('ellipse', ['cx', 0, 'cy', 118, 'rx', 132, 'ry', 24, 'fill', c.col('ink'), 'fill-opacity', '.16', 'filter', 'url(#' + d.b14 + ')']) +
 				el('ellipse', ['cx', 0, 'cy', 112, 'rx', 62, 'ry', 11, 'fill', c.col('ink'), 'fill-opacity', '.18', 'filter', 'url(#' + d.b5 + ')']),
 			content: glass
-				? el('use', ['href', '#' + sid, 'fill', c.dieGlass, 'fill-opacity', '.55', 'stroke', c.col('outline'), 'stroke-width', n(2.6 * c.w, 1)]) +
+				? el('use', ['href', '#' + sid, 'fill', esc(c.dieGlass), 'fill-opacity', '.55', 'stroke', c.col('outline'), 'stroke-width', n(2.6 * c.w, 1)]) +
 					el('g', ['clip-path', 'url(#' + cid + ')'], faces + seams)
 				: el('use', ['href', '#' + sid, 'fill', esc(c.dieUnder)]) +
 					el('g', ['clip-path', 'url(#' + cid + ')', 'filter', 'url(#' + d.sf + ')'], faces) +

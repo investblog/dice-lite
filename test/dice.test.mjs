@@ -133,8 +133,17 @@ test('the glass body: frost fill, outline strokes, solid pips, and no dice gradi
 	const svg = Dice.toss({ seed: 1, body: 'glass' });
 	assert.doesNotMatch(svg, /[lr]inearGradient|adialGradient/u, 'glass draws no gradients — unused defs are not emitted');
 	assert.equal((svg.match(/fill-opacity=".55"/gu) || []).length, 3, 'the three silhouettes carry the frost');
-	assert.ok(svg.includes(`stroke="${Dice.palette().outline}"`), 'the silhouette and seams stroke in outline');
-	assert.ok(svg.includes(`fill="${Dice.palette().pip}"`), 'the pips are solid pip, not a gradient');
+	assert.equal((svg.match(/stroke-width="2.2"/gu) || []).length, 18, 'nine seams + nine nose arcs at the seam weight');
+	assert.equal((svg.match(/stroke-width="2.6"/gu) || []).length, 3, 'the three silhouettes at the outline weight');
+	assert.ok((svg.match(new RegExp('fill="' + Dice.palette().pip + '"', 'gu')) || []).length > 1,
+		'solid pips — the rail alone would be exactly one fill of the pip colour');
+	const cssDie = Dice.die({ body: 'glass', die: 'var(--paper, "#123")' });
+	assert.ok(cssDie.includes('fill="var(--paper, &quot;#123&quot;)"'),
+		'an arbitrary CSS die pin frosts the glass verbatim, escaped');
+	const ids = (s) => new Set([...s.matchAll(/ id="([a-z][a-z0-9]{5})"/gu)].map((m) => m[1]));
+	const paperIds = ids(Dice.toss({ seed: 'mix' })), glassIds = ids(Dice.toss({ seed: 'mix', body: 'glass' }));
+	const shared = [...paperIds].filter((x) => glassIds.has(x));
+	assert.equal(shared.length, 0, 'paper and glass share no id — the body is part of the id key');
 	const paper = Dice.toss({ seed: 7 }), glass = Dice.toss({ seed: 7, body: 'glass' });
 	assert.notEqual(sha(paper), sha(glass), 'the body changes the picture');
 	assert.equal(Dice.toss({ seed: 7, body: 'glass' }), glass, 'glass is deterministic');

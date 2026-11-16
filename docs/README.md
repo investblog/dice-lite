@@ -10,13 +10,14 @@ project: dice-lite
 Docs for developers and agents. `index.html` will be the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-11-16): M3 done.** The library is feature-complete for v0.1: the projected
-cube on the brand table (ADR 002 addendum), the five results (ADR 003), the settle
-(ADR 005 addendum), `init()`, types — 38 checks green, the library 7227 B gzipped of the
-**frozen 7424** (ADR 006 addendum), a `dice: 3` throw averaging 9347 B raw / 2345 B gzip
-over 60 seeds. Every number below is either a family measurement carried over or a
-*provisional* forecast naming the milestone that replaces it with a measurement; this line is
-kept true at every milestone.
+**Status (2026-11-16): v0.1.0 published.** The library is feature-complete and on npm: the
+projected cube on the brand table (ADR 002 addendum), the five results (ADR 003), the settle
+(ADR 005 addendum), `init()`, types — 41 tests and the 14-check browser gate green, the
+library 8536 B gzipped of the budget **8704** (frozen 7424 at M3, raised three times by the
+ADR 007 addenda, ADR 006), a `dice: 3` throw averaging 9347 B raw / 2345 B gzip over 60
+seeds. Every number below is either a family measurement carried over or a *provisional*
+forecast naming the milestone that replaces it with a measurement; this line is kept true at
+every milestone.
 
 ## The pitch, in one paragraph
 
@@ -251,9 +252,11 @@ needed** — there is no fixed `d` to count (ADR 002); a pinned test asserts the
 ## Performance and size
 
 - Library: budget in `package.json` `config.sizeBudget`, measured by `npm run size` (terser in
-  process + gzip level 9, never the `gzip` CLI). **Frozen at 7424 B (ADR 006 addendum)**: M3
-  measured 7227 B gzipped; +2.5% rounded up to 128. (The M0 forecast of 3.4 KB was the
-  flat-die library; the projected cube, its gradients and the settle cost the rest.)
+  process + gzip level 9, never the `gzip` CLI). **8704 B (ADR 006 addenda)**: frozen at 7424
+  when M3 measured 7227 B gzipped; the ADR 007 day (seams, glass, the corner-trim corrections
+  and their review fixes) raised it three times with measurements — 7596 → 8359 → 8528 →
+  **8536 B gzipped** today, each ceiling the smallest 128-rounded number that covers the
+  measured size.
 - Output, **measured at M3 over 60 seeds** for `dice: 3`: average **9347 B raw / 2345 B
   gzip**, worst seed 10584 / 2517. The M-forecast of 4 KB raw was the flat die again; the
   projected cube runs ~2.4× it — and still ~2.3 KB gzipped for a hero picture. `line`
