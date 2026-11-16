@@ -60,3 +60,14 @@ trim geometry: **8359 B gzipped** → budget raised to **8448 B** (8359 + 89, th
 128-rounded ceiling). Two raises in a day, each measured, each bought with a user-visible
 defect fix; the M0 provisional 8192 is finally crossed, which the M0 text anticipated as
 harmless.
+
+## Addendum 2026-11-16 (ADR 007 addendum, part two) — raised to 8704 B
+
+The seam trim then gained two corrections, both found by measurement: the Q-curve crossing
+must choose the root ON the seam segment nearest the corner (the other root lies on the
+line's extension, outside the silhouette — silently picked before), and the seam end is
+pulled one stroke-width back inside the boundary so the line reads "meets the boundary and
+stops" instead of merging into the outline — decisive in glass, where bold seams cross
+overlapping transparent dice. Measured **8528 B gzipped** → budget raised to **8704 B**
+(8528 + 76, the smallest 128-rounded ceiling). Three raises on the ADR 007 day, each
+measured, each a user-visible defect fix.

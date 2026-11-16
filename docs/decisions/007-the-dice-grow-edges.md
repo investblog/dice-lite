@@ -81,3 +81,16 @@ stops now joins through a small Q-arc with the control point at the nose — rqu
 corner construction, tangent to both seams at any stop distance. One arc per face, same
 paint as the seams: every corner of every face reads rounded alike, and the nose matches the
 silhouette's vocabulary. Measured: 8432 B, still under the 8448 ceiling.
+
+One more convergence remained — and it was not the nose. The user's third screenshot put
+arrows on every silhouette corner: the seam ends sat ON the rounded outline and merged with
+it into pointed junctions, and at overlapping dice the bold glass seams crossing the felt
+read as defects. Measurement (isPointInFill/isPointInStroke over every seam end) showed the
+ends exactly on the curve — geometry right, reading wrong. Two corrections:
+
+- the Q-curve crossing now selects the root ON the seam segment nearest the corner (by the
+  segment parameter s, not the curve's t — the smallest-t root can sit on the line's
+  extension, outside the silhouette);
+- each seam end is pulled one stroke-width back inside the boundary. A hairline gap reads
+  as "the edge meets the boundary and stops" — the technical-drawing convention — and keeps
+  overlapping glass dice legible.

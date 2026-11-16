@@ -597,12 +597,25 @@
 					var disc = qb * qb - 4 * qa * qc, ts = null;
 					if (Math.abs(qa) < 1e-9) { if (Math.abs(qb) > 1e-9) { var t0 = -qc / qb; if (t0 > 0 && t0 < 1) ts = t0; } }
 					else if (disc >= 0) {
-						var sq2 = Math.sqrt(disc), best = null;
+						var sq2 = Math.sqrt(disc), best = null, d2n = Dx * Dx + Dy * Dy;
 						for (var sg = -1; sg <= 1; sg += 2) {
 							var t1 = (-qb + sg * sq2) / (2 * qa);
-							if (t1 > 0 && t1 < 1 && (best == null || t1 < best)) best = t1;
+							if (t1 <= 0 || t1 >= 1) continue;
+							// the crossing must lie ON the seam segment (s in 0..1 measured
+							// from W), and the exit nearest the corner wins — the other root
+							// sits on the line's extension, outside the silhouette
+							var bx = c1 + t1 * c2 + t1 * t1 * c3 - W[0], by = c4 + t1 * c5 + t1 * t1 * c6 - W[1];
+							var ss = (bx * Dx + by * Dy) / d2n;
+							if (ss > 0 && ss < 1 && (best == null || ss > best.s)) best = { s: ss, t: t1 };
 						}
-						ts = best;
+						// pull the end one stroke-width back inside the silhouette: a hairline gap
+						// reads as "the edge meets the boundary" and never merges into the
+						// outline — which matters most in glass, where bold seams cross
+						// overlapping dice
+						if (best) {
+							var gs = (glass ? 2.2 : 1.4) * c.w / Math.sqrt(d2n);
+							V = [W[0] + Dx * (best.s - gs), W[1] + Dy * (best.s - gs)];
+						}
 					}
 					if (ts != null) V = [c1 + ts * c2 + ts * ts * c3, c4 + ts * c5 + ts * ts * c6];
 				}

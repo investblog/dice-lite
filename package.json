@@ -19,7 +19,7 @@
     "gate:browser": "node scripts/browser-gate.mjs"
   },
   "config": {
-    "sizeBudget": 8448
+    "sizeBudget": 8704
   },
   "keywords": [
     "dice",
