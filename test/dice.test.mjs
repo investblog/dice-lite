@@ -114,6 +114,25 @@ test('pins reach the dice: hex pins mix into the gradients, other strings pass v
 });
 
 test('the projection is pinned: golden snapshots of a throw and an icon', () => {
-	assert.equal(sha(Dice.toss({ seed: 'golden' })), 'fb6e888fbfb8a4660a1d48a4990f33b0e49d8c774109f3a0d9819a57cb437217');
-	assert.equal(sha(Dice.die({ seed: 'golden', value: 5 })), '6e2429b59b6e7a117c50a4e7ea84cd05942ef414727cce87bbfdcaa7f4305f0c');
+	assert.equal(sha(Dice.toss({ seed: 'golden' })), '8ba87b8ace6a022aaa6d9f73c715eafb3a3583168a429e62af5bf7bff9cd4a47');
+	assert.equal(sha(Dice.die({ seed: 'golden', value: 5 })), 'bb9a481c0b64560a9df62e52a51a34f110f45b5906a5785aa2c01df0b1e59e03');
+});
+
+test('the paper body draws cut seams: open segments in quiet ink, three per die', () => {
+	const svg = Dice.toss({ seed: 1 });
+	const seams = svg.match(/<path clip-path="url\(#[a-z][a-z0-9]{5}\)" d="M-?[\d.]+ -?[\d.]+L-?[\d.]+ -?[\d.]+" fill="none" stroke="#[0-9a-f]+" stroke-opacity=".15" stroke-width="[\d.]+" stroke-linecap="round"\/>/gu);
+	assert.equal(seams && seams.length, 9, 'three dice × three shared edges');
+	assert.equal(Dice.die({ seed: 1 }).match(/stroke-linecap="round"/gu).length, 3, 'one die: three seams');
+	assert.equal(Dice.toss({ seed: 7, body: 'paper' }), Dice.toss({ seed: 7 }), "'paper' is the default, byte-identical");
+});
+
+test('the glass body: frost fill, outline strokes, solid pips, and no dice gradients at all', () => {
+	const svg = Dice.toss({ seed: 1, body: 'glass' });
+	assert.doesNotMatch(svg, /[lr]inearGradient|adialGradient/u, 'glass draws no gradients — unused defs are not emitted');
+	assert.equal((svg.match(/fill-opacity=".55"/gu) || []).length, 3, 'the three silhouettes carry the frost');
+	assert.ok(svg.includes(`stroke="${Dice.palette().outline}"`), 'the silhouette and seams stroke in outline');
+	assert.ok(svg.includes(`fill="${Dice.palette().pip}"`), 'the pips are solid pip, not a gradient');
+	const paper = Dice.toss({ seed: 7 }), glass = Dice.toss({ seed: 7, body: 'glass' });
+	assert.notEqual(sha(paper), sha(glass), 'the body changes the picture');
+	assert.equal(Dice.toss({ seed: 7, body: 'glass' }), glass, 'glass is deterministic');
 });

@@ -457,10 +457,16 @@
 			for (i = 0; i < list.length; i++) s += el('stop', ['offset', i === 0 ? 0 : n(i / (list.length - 1), 2), 'stop-color', esc(list[i])]);
 			return el('linearGradient', ['id', id, 'x1', a1[0], 'y1', a1[1], 'x2', a2[0], 'y2', a2[1]], s);
 		};
+		var glass = c.o.body === 'glass';
 		return c.add('dice:defs', function () {
 			var gt = c.tk(), gl = c.tk(), gr = c.tk(), gp = c.tk(), ga = c.tk(), b14 = c.tk(), b5 = c.tk(), sf = c.tk();
 			c.die = { t: gt, l: gl, r: gr, p: gp, a: ga, b14: b14, b5: b5, sf: sf };
 			c.dieUnder = t ? die : colMix(die, -20);
+			var blur = el('filter', ['id', b14, 'x', '-60%', 'y', '-60%', 'width', '220%', 'height', '220%'], el('feGaussianBlur', ['stdDeviation', 14])) +
+				el('filter', ['id', b5, 'x', '-60%', 'y', '-60%', 'width', '220%', 'height', '220%'], el('feGaussianBlur', ['stdDeviation', 5]));
+			// a glass body draws no gradients: the frost is a flat fill, the pips solid — only
+			// the shadows' blurs come out of the defs (ADR 007)
+			if (glass) { c.dieGlass = colMix(die, 6); return blur; }
 			return g(gt, stops, ['.25', 0], ['.6', 1]) + g(gl, sl, ['.2', 0], ['.7', 1]) + g(gr, sr, ['.2', 0], ['.7', 1]) +
 				el('radialGradient', ['id', gp, 'cx', '.31', 'cy', '.27', 'r', '.78'],
 					el('stop', ['offset', 0, 'stop-color', esc(ps[0])]) + el('stop', ['offset', '.1', 'stop-color', esc(ps[1])]) +
@@ -470,8 +476,7 @@
 					el('stop', ['offset', '.48', 'stop-color', '#fff', 'stop-opacity', '.04']) +
 					el('stop', ['offset', '.72', 'stop-color', '#000', 'stop-opacity', 0]) +
 					el('stop', ['offset', 1, 'stop-color', '#000', 'stop-opacity', '.09'])) +
-				el('filter', ['id', b14, 'x', '-60%', 'y', '-60%', 'width', '220%', 'height', '220%'], el('feGaussianBlur', ['stdDeviation', 14])) +
-				el('filter', ['id', b5, 'x', '-60%', 'y', '-60%', 'width', '220%', 'height', '220%'], el('feGaussianBlur', ['stdDeviation', 5])) +
+				blur +
 				el('filter', ['id', sf, 'x', '-20%', 'y', '-20%', 'width', '140%', 'height', '140%'], el('feGaussianBlur', ['stdDeviation', 1.4]));
 		});
 	}
@@ -479,7 +484,7 @@
 	// one die as {shadow, content} — no placement wrapper: the caller owns the transform, so
 	// the motion group can sit between the placement and the content (ADR 005 addendum)
 	function die(c, top, yaw) {
-		var pre = REST[top], F = [], i;
+		var pre = REST[top], F = [], i, glass = c.o.body === 'glass';
 		for (i = 0; i < 6; i++) {
 			var f = CUBE[i];
 			F.push({ c: pre(f.c), u: pre(f.u), v: pre(f.v), n: pre(f.n), val: f.val });
@@ -499,14 +504,20 @@
 		}
 		vis.sort(function (a, b) { return a.z - b.z; });
 		var viewT = [0, Math.sin(PITCH), Math.cos(PITCH)];
-		var faces = '', face = '';
+		var faces = '', face = '', seams = '', SEAMC = [];
 		for (i = 0; i < vis.length; i++) {
-			var fc = vis[i].f, cs = [], j;
+			var fc = vis[i].f, cs = [], cs2 = [], j;
 			for (j = 0; j < 4; j++) {
 				var I = j === 1 || j === 2 ? 1 : -1, J = j >= 2 ? 1 : -1;
 				cs.push(pt(add3(add3(fc.c, fc.u, I * HG), fc.v, J * HG)));
+				// the true corners (±H) — endpoints for the seams; the quads above use HG = H + 2
+				// and overlap on purpose, so their corners must not serve as edges
+				cs2.push(pt(add3(add3(fc.c, fc.u, I * H), fc.v, J * H)));
 			}
-			face = el('path', ['d', rquad2(cs, RF), 'fill', 'url(#' + (vis[i].rn[1] > 0.4 ? d.t : vis[i].rn[0] > 0 ? d.r : d.l) + ')']);
+			SEAMC.push(cs2);
+			// a glass body has no face fills: the frost is the silhouette's; pips and seams
+			// ride the clip
+			face = glass ? '' : el('path', ['d', rquad2(cs, RF), 'fill', 'url(#' + (vis[i].rn[1] > 0.4 ? d.t : vis[i].rn[0] > 0 ? d.r : d.l) + ')']);
 			// the pips: circles in 3D on the face plane, drawn as their exact projection —
 			// major axis along face∩image-plane (true length), minor foreshortened
 			var nT = rotY(fc.n, yaw);
@@ -520,11 +531,28 @@
 					'rx', n(Math.sqrt(ax[0] * ax[0] + ax[1] * ax[1]), 1),
 					'ry', n(Math.sqrt((mn[0] - cc[0]) * (mn[0] - cc[0]) + (mn[1] - cc[1]) * (mn[1] - cc[1])), 1),
 					'transform', 'rotate(' + n(Math.atan2(ax[1], ax[0]) * 180 / Math.PI, 1) + ' ' + n(cc[0], 1) + ' ' + n(cc[1], 1) + ')',
-					'fill', 'url(#' + d.p + ')']);
+					'fill', glass ? c.col('pip') : 'url(#' + d.p + ')']);
 			}
 			faces += face; // face and its pips stay one unit, far-to-near
 		}
 		var sid = c.tk(), cid = c.tk();
+		// the seams: each pair of visible faces shares one cube edge — two matching true corners.
+		// Open segments painted over the faces, each clipped to the silhouette, which cuts both
+		// rounded ends. In paper they sit in their own clipped group above the airbrush; in
+		// glass they ride the faces' clip
+		for (i = 0; i < SEAMC.length; i++) for (var j2 = i + 1; j2 < SEAMC.length; j2++) {
+			var A = SEAMC[i], B = SEAMC[j2], P = [];
+			for (var a2 = 0; a2 < 4; a2++) for (var b2 = 0; b2 < 4; b2++) {
+				var d2 = A[a2][0] - B[b2][0], d3 = A[a2][1] - B[b2][1];
+				if (d2 * d2 + d3 * d3 < 0.01) { P.push(A[a2]); break; }
+			}
+			if (P.length === 2) seams += el('path', ['clip-path', glass ? null : 'url(#' + cid + ')',
+				'd', 'M' + n(P[0][0], 1) + ' ' + n(P[0][1], 1) +
+				'L' + n(P[1][0], 1) + ' ' + n(P[1][1], 1), 'fill', 'none',
+				'stroke', glass ? c.col('outline') : c.col('ink'),
+				'stroke-opacity', glass ? null : '.15',
+				'stroke-width', n((glass ? 2.2 : 1.4) * c.w, 1), 'stroke-linecap', 'round']);
+		}
 		// the silhouette lives in defs with NO fill of its own: a fill set on the source would
 		// beat the uses' paints (and would render if the path sat in the body) — so the uses
 		// own every paint, and its d is computed from the yaw, keeping zero-d honest
@@ -532,10 +560,14 @@
 		return {
 			shadow: el('ellipse', ['cx', 0, 'cy', 118, 'rx', 132, 'ry', 24, 'fill', c.col('ink'), 'fill-opacity', '.16', 'filter', 'url(#' + d.b14 + ')']) +
 				el('ellipse', ['cx', 0, 'cy', 112, 'rx', 62, 'ry', 11, 'fill', c.col('ink'), 'fill-opacity', '.18', 'filter', 'url(#' + d.b5 + ')']),
-			content: el('use', ['href', '#' + sid, 'fill', esc(c.dieUnder)]) +
-				el('g', ['clip-path', 'url(#' + cid + ')', 'filter', 'url(#' + d.sf + ')'], faces) +
-				el('use', ['href', '#' + sid, 'fill', 'url(#' + d.a + ')']) +
-				el('use', ['href', '#' + sid, 'fill', 'none', 'stroke', '#00000010', 'stroke-width', 2])
+			content: glass
+				? el('use', ['href', '#' + sid, 'fill', c.dieGlass, 'fill-opacity', '.55', 'stroke', c.col('outline'), 'stroke-width', n(2.6 * c.w, 1)]) +
+					el('g', ['clip-path', 'url(#' + cid + ')'], faces + seams)
+				: el('use', ['href', '#' + sid, 'fill', esc(c.dieUnder)]) +
+					el('g', ['clip-path', 'url(#' + cid + ')', 'filter', 'url(#' + d.sf + ')'], faces) +
+					el('use', ['href', '#' + sid, 'fill', 'url(#' + d.a + ')']) +
+					el('use', ['href', '#' + sid, 'fill', 'none', 'stroke', '#00000010', 'stroke-width', 2]) +
+					seams
 		};
 	}
 

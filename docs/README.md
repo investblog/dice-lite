@@ -80,7 +80,18 @@ it. The viewBox follows `dice`: the felt is sized to the canonical slots plus ma
 | Rail | a padded ring around the felt in `rail` | width, corner |
 | Shadow | broad + contact `<ellipse>`s per die, a seam pool where dice touch | — |
 | Die | a rounded cube: silhouette = rounded hull of the 8 projected corners; faces = projected quads under a shared airbrush | yaw, value |
-| Pips | exact projected ellipses in `pip` on each visible face's 3×3 lattice | — |
+| Seams | the three interior edges of the visible faces — open segments between the **true** corners (the drawn quads use HG = H + 2 and overlap on purpose, so they cannot serve); the silhouette clip cuts both rounded ends | — |
+| Pips | exact projected ellipses in `pip` on each visible face's 3×3 lattice — solid, unshaded, in a glass body | — |
+
+**The body.** `body: 'paper'` (default) is the classic dice: paper gradients, pips in shaded
+`pip`, and the seams a quiet `ink` line at **0.15** — the smallest alpha whose edge signal
+clears the render noise twofold, measured by raster subtraction (ADR 007). `body: 'glass'` is
+frosted acrylic: the silhouette filled with the `die` colour pushed to near-white at **55%**,
+stroked in `outline`; no face gradients, no airbrush, no sheen; pips solid `pip`; seams the
+same cut segments in `outline`, wider. Wireframe-without-fills was prototyped and rejected —
+on dice, unlike roulette's line art, three pip planes overlap in one projection and only the
+fills (or the frost) keep them apart. The glass is paint, not optics: no refraction, and the
+subject stays an illustration (ADR 003).
 
 All of it is computed from the seeded numbers, so the picture contributes **no fixed `d` at
 all** — the inverted counted exception of ADR 002 (addendum 2026-11-16), pinned by test.
@@ -202,6 +213,8 @@ escapes `" < > &`. `'auto'` unpins. `rail` additionally accepts its named modes 
 `'felt'` — modes resolve inside the cascade, never as literal colours. One deliberate exception, because dice shade with
 gradients: a `#hex`/`rgb()` pin on `die` or `pip` is mixed in LCh into that part's light and
 shade; any other string (`var(…)`, named colours) is used verbatim for every stop, escaped.
+In a glass body the pips are solid, so a `#hex`/`rgb()` pin sits flat there — there is no
+gradient to mix into.
 
 **The invariant:** *every throw reads as dice on a table whatever the brand — paper dice, black
 pips, a brand-coloured felt; and the brand lands on the table — the first chromatic colour
@@ -282,6 +295,7 @@ Dice.init(el, opts)          // browser → {el, get(), set(opts), destroy()}, o
 | `weight` | `1` | line weight multiplier |
 | `felt trim die pip ink outline` | `'auto'` | any CSS colour string |
 | `rail` | `'auto'` | `'auto'` \| `'brand'` \| `'felt'` — the edge mode (above), or any CSS colour string |
+| `body` | `'paper'` | `'paper'` \| `'glass'` — the dice bodies (above) |
 | `size` | — | width; the height follows the viewBox |
 | `precision` | `0` | decimals for coordinates |
 | `salt` | `''` | extra entropy for ids — the same picture twice on one page |

@@ -13,5 +13,7 @@ bump.
   `values` pins, the one-shot CSS settle with `prefers-reduced-motion` support, `palette()`,
   `die()`, `init()` and `dice.d.ts`. The rail is a mode: `'auto'` (default) the dark surround,
   `'brand'` the leftover brand colour, `'felt'` no edge, any colour pins it (ADR 004 addendum).
-  Library 7299 B gzipped (budget frozen at 7424, ADR 006 addendum); a `dice: 3` throw averages
-  9347 B raw / 2345 B gzip over 60 seeds.
+  The dice gained edges: cut seams in quiet ink on the paper body, and `body: 'glass'` draws
+  frosted acrylic — silhouette fill at 55%, outline seams, solid pips, no gradients emitted
+  (ADR 007; the alpha measured by raster subtraction). Library 7596 B gzipped (budget raised
+  to 7680, ADR 006 addendum); a `dice: 3` throw averages 9347 B raw / 2345 B gzip over 60 seeds.

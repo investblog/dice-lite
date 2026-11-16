@@ -24,6 +24,8 @@ declare namespace Dice {
 		style?: 'line' | 'flat';
 		/** line weight multiplier. */
 		weight?: number;
+		/** the dice bodies: paper (default) or frosted glass (ADR 007). */
+		body?: 'paper' | 'glass';
 		felt?: Pin;
 		rail?: RailPin;
 		trim?: Pin;

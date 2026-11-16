@@ -42,3 +42,11 @@ with gradients, a settle and a seam pool; the honest number is ~2.1× the foreca
 output forecast missed the same way: `dice: 3` measures **9347 B raw / 2345 B gzip** on
 average over 60 seeds (worst seed 10584 / 2517) — ~2.4× the 4 KB forecast, and still a
 two-kilobyte hero picture. The trims that survive are measured, never reasoned.
+
+## Addendum 2026-11-16 (ADR 007) — raised to 7680 B
+
+The cut seams and the glass body (ADR 007) added geometry and a body branch; measured
+`npm run size`: **7596 B gzipped** → budget raised to **7680 B** (7596 + 84 of headroom, the
+smallest 128-rounded ceiling that covers it). The raise is deliberate, not drift: the seams
+are the user's measured readability fix, and the glass branch buys a whole body mode for
+~120 B — both measured with `npm run size` before being kept, per this ADR's own rule.
