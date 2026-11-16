@@ -57,3 +57,20 @@ paint order does the occlusion honestly.
   are not emitted).
 - A `#hex`/`rgb()` pin on `pip` shades through gradients in paper and sits flat in glass —
   the solid fill cannot mix; the exception is noted where the pin rule lives.
+
+## Addendum (2026-11-16, same day) — the seams stop at the rounding
+
+The user caught the defect on the library's own cover image: seams ran corner-to-corner, so
+each face's front corners were sharp meeting points while the silhouette corners were
+rounded — "the front side reads square, the far corners read rounded". A real rounded cube's
+edges never reach the vertex.
+
+The trim is exact, not a fudge factor. At the **nose** (the interior corner the three faces
+share) each seam is shortened by rquad2's own tangent rule on each adjacent wedge —
+`k = min(RS, len/3, len/3)`, the nearest rounding wins. At the **silhouette** the seam ends
+where it meets the rounded-corner Q-curve itself: tangent points `k` along both hull edges,
+control at the corner, solved as a quadratic against the seam line — a chord-approximation
+would overshoot the silhouette by the curve's sagitta (~6 units, visible).
+
+The clip stays as a belt-and-suspenders guard; the geometry now does the cutting. Budget
+consequence measured and recorded in ADR 006: 7596 → 8359 B, ceiling 8448.

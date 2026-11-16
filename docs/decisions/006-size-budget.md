@@ -50,3 +50,13 @@ The cut seams and the glass body (ADR 007) added geometry and a body branch; mea
 smallest 128-rounded ceiling that covers it). The raise is deliberate, not drift: the seams
 are the user's measured readability fix, and the glass branch buys a whole body mode for
 ~120 B — both measured with `npm run size` before being kept, per this ADR's own rule.
+
+## Addendum 2026-11-16 (ADR 007 addendum, same day) — raised to 8448 B
+
+The cover image caught the square-front-corner defect: seams ran corner-to-corner, so the
+front face read square against the rounded silhouette corners. The fix — both seam ends stop
+where the corner rounding begins, meeting rquad2's rounded-corner Q-curve exactly — added the
+trim geometry: **8359 B gzipped** → budget raised to **8448 B** (8359 + 89, the smallest
+128-rounded ceiling). Two raises in a day, each measured, each bought with a user-visible
+defect fix; the M0 provisional 8192 is finally crossed, which the M0 text anticipated as
+harmless.

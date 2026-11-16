@@ -114,8 +114,8 @@ test('pins reach the dice: hex pins mix into the gradients, other strings pass v
 });
 
 test('the projection is pinned: golden snapshots of a throw and an icon', () => {
-	assert.equal(sha(Dice.toss({ seed: 'golden' })), '8ba87b8ace6a022aaa6d9f73c715eafb3a3583168a429e62af5bf7bff9cd4a47');
-	assert.equal(sha(Dice.die({ seed: 'golden', value: 5 })), 'bb9a481c0b64560a9df62e52a51a34f110f45b5906a5785aa2c01df0b1e59e03');
+	assert.equal(sha(Dice.toss({ seed: 'golden' })), '0c1231b3620b0b78d7b793478197771068b179f41dfe6467b6b1553c18774ec0');
+	assert.equal(sha(Dice.die({ seed: 'golden', value: 5 })), '59162793a7be7bf476feb923ae8ab65e7ad04bcfc2ad64bf4bac8e578ba5365a');
 });
 
 test('the paper body draws cut seams: open segments in quiet ink, three per die', () => {

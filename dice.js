@@ -536,19 +536,78 @@
 			faces += face; // face and its pips stay one unit, far-to-near
 		}
 		var sid = c.tk(), cid = c.tk();
-		// the seams: each pair of visible faces shares one cube edge — two matching true corners.
-		// Open segments painted over the faces, each clipped to the silhouette, which cuts both
-		// rounded ends. In paper they sit in their own clipped group above the airbrush; in
-		// glass they ride the faces' clip
+		// the seams: each pair of visible faces shares one cube edge — two matching true corners
+		// (the drawn quads use HG = H + 2 and overlap on purpose, so they cannot serve). Open
+		// segments over the faces, both ends stopping where the corner rounding starts: a rounded
+		// cube's edges never reach the vertex, and lines that do make the front face read square
+		// against the rounded silhouette corners (the cover-image defect, ADR 007 addendum).
+		// At the nose the trim is rquad2's own tangent length on each adjacent wedge; at the
+		// silhouette the seam ends where it meets the rounded-corner Q-curve
+		var SP = [];
 		for (i = 0; i < SEAMC.length; i++) for (var j2 = i + 1; j2 < SEAMC.length; j2++) {
 			var A = SEAMC[i], B = SEAMC[j2], P = [];
 			for (var a2 = 0; a2 < 4; a2++) for (var b2 = 0; b2 < 4; b2++) {
 				var d2 = A[a2][0] - B[b2][0], d3 = A[a2][1] - B[b2][1];
 				if (d2 * d2 + d3 * d3 < 0.01) { P.push(A[a2]); break; }
 			}
-			if (P.length === 2) seams += el('path', ['clip-path', glass ? null : 'url(#' + cid + ')',
-				'd', 'M' + n(P[0][0], 1) + ' ' + n(P[0][1], 1) +
-				'L' + n(P[1][0], 1) + ' ' + n(P[1][1], 1), 'fill', 'none',
+			if (P.length === 2) SP.push(P);
+		}
+		var nose = null;
+		if (SP.length === 3) for (var e0 = 0; e0 < 2 && !nose; e0++) {
+			var hits = 0;
+			for (var s0 = 0; s0 < 3; s0++) for (var e1 = 0; e1 < 2; e1++) {
+				var qx = SP[s0][e1][0] - SP[0][e0][0], qy = SP[s0][e1][1] - SP[0][e0][1];
+				if (qx * qx + qy * qy < 0.01) hits++;
+			}
+			if (hits === 3) nose = SP[0][e0];
+		}
+		var hp = hull2(corners);
+		for (i = 0; i < SP.length; i++) {
+			var W = SP[i][0], V = SP[i][1];
+			if (nose) {
+				if (Math.abs(W[0] - nose[0]) + Math.abs(W[1] - nose[1]) > 0.1) { var sw = W; W = V; V = sw; }
+				var ux = V[0] - W[0], uy = V[1] - W[1], luv = Math.sqrt(ux * ux + uy * uy);
+				var tn = Math.min(luv, RS);
+				for (var s1 = 0; s1 < 3; s1++) if (s1 !== i) {
+					var O = Math.abs(SP[s1][0][0] - W[0]) + Math.abs(SP[s1][0][1] - W[1]) < 0.1 ? SP[s1][1] : SP[s1][0];
+					var vx = O[0] - W[0], vy = O[1] - W[1];
+					var lw = Math.min(luv, Math.sqrt(vx * vx + vy * vy)) / 3;
+					if (lw < tn) tn = lw;
+				}
+				W = [W[0] + ux / luv * tn, W[1] + uy / luv * tn];
+			}
+			// the silhouette end: meet the rounded-corner Q-curve at V (rquad2's construction)
+			var vi = -1;
+			for (var h0 = 0; h0 < hp.length; h0++) {
+				var hx = hp[h0][0] - V[0], hy = hp[h0][1] - V[1];
+				if (hx * hx + hy * hy < 0.01) { vi = h0; break; }
+			}
+			if (vi >= 0) {
+				var pv = hp[(vi - 1 + hp.length) % hp.length], nx2 = hp[(vi + 1) % hp.length];
+				var ex = V[0] - pv[0], ey = V[1] - pv[1], fx = nx2[0] - V[0], fy = nx2[1] - V[1];
+				var le = Math.sqrt(ex * ex + ey * ey), lf = Math.sqrt(fx * fx + fy * fy);
+				if (le > 1e-6 && lf > 1e-6) {
+					var kk = Math.min(RS, le / 3, lf / 3);
+					var m0 = [V[0] - ex / le * kk, V[1] - ey / le * kk], m1 = [V[0] + fx / lf * kk, V[1] + fy / lf * kk];
+					var Dx = V[0] - W[0], Dy = V[1] - W[1];
+					var c1 = m0[0], c2 = 2 * (V[0] - m0[0]), c3 = m0[0] - 2 * V[0] + m1[0];
+					var c4 = m0[1], c5 = 2 * (V[1] - m0[1]), c6 = m0[1] - 2 * V[1] + m1[1];
+					var qa = c3 * Dy - c6 * Dx, qb = c2 * Dy - c5 * Dx, qc = (c1 - W[0]) * Dy - (c4 - W[1]) * Dx;
+					var disc = qb * qb - 4 * qa * qc, ts = null;
+					if (Math.abs(qa) < 1e-9) { if (Math.abs(qb) > 1e-9) { var t0 = -qc / qb; if (t0 > 0 && t0 < 1) ts = t0; } }
+					else if (disc >= 0) {
+						var sq2 = Math.sqrt(disc), best = null;
+						for (var sg = -1; sg <= 1; sg += 2) {
+							var t1 = (-qb + sg * sq2) / (2 * qa);
+							if (t1 > 0 && t1 < 1 && (best == null || t1 < best)) best = t1;
+						}
+						ts = best;
+					}
+					if (ts != null) V = [c1 + ts * c2 + ts * ts * c3, c4 + ts * c5 + ts * ts * c6];
+				}
+			}
+			seams += el('path', ['clip-path', glass ? null : 'url(#' + cid + ')',
+				'd', 'M' + n(W[0], 1) + ' ' + n(W[1], 1) + 'L' + n(V[0], 1) + ' ' + n(V[1], 1), 'fill', 'none',
 				'stroke', glass ? c.col('outline') : c.col('ink'),
 				'stroke-opacity', glass ? null : '.15',
 				'stroke-width', n((glass ? 2.2 : 1.4) * c.w, 1), 'stroke-linecap', 'round']);
