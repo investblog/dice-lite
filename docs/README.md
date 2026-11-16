@@ -80,7 +80,7 @@ it. The viewBox follows `dice`: the felt is sized to the canonical slots plus ma
 | Rail | a padded ring around the felt in `rail` | width, corner |
 | Shadow | broad + contact `<ellipse>`s per die, a seam pool where dice touch | — |
 | Die | a rounded cube: silhouette = rounded hull of the 8 projected corners; faces = projected quads under a shared airbrush | yaw, value |
-| Seams | the three interior edges of the visible faces — open segments between the **true** corners (the drawn quads use HG = H + 2 and overlap on purpose, so they cannot serve); both ends stop where the corner rounding starts — at the silhouette the seam meets rquad2's rounded-corner Q-curve, at the nose a same-radius tangent trim — so no line enters a rounded corner and every face reads rounded alike (ADR 007 addendum: the cover-image square-front-corner defect) | — |
+| Seams | the three interior edges of the visible faces — open segments between the **true** corners (the drawn quads use HG = H + 2 and overlap on purpose, so they cannot serve); both ends stop where the corner rounding starts — at the silhouette the seam meets rquad2's rounded-corner Q-curve, at the nose a same-radius tangent trim — and every pair of nose stops joins through a small Q-arc, one per face, so no corner reads skewed and every face rounds alike (ADR 007 addendum: the cover-image corner defects) | — |
 | Pips | exact projected ellipses in `pip` on each visible face's 3×3 lattice — solid, unshaded, in a glass body | — |
 
 **The body.** `body: 'paper'` (default) is the classic dice: paper gradients, pips in shaded

@@ -114,15 +114,18 @@ test('pins reach the dice: hex pins mix into the gradients, other strings pass v
 });
 
 test('the projection is pinned: golden snapshots of a throw and an icon', () => {
-	assert.equal(sha(Dice.toss({ seed: 'golden' })), '0c1231b3620b0b78d7b793478197771068b179f41dfe6467b6b1553c18774ec0');
-	assert.equal(sha(Dice.die({ seed: 'golden', value: 5 })), '59162793a7be7bf476feb923ae8ab65e7ad04bcfc2ad64bf4bac8e578ba5365a');
+	assert.equal(sha(Dice.toss({ seed: 'golden' })), 'ad7fbc3f7a9bd485249c182e6350f8a62db78d937bbb326725d6fe07f3bba868');
+	assert.equal(sha(Dice.die({ seed: 'golden', value: 5 })), '928e1fdc68eb503fd0750c9fd24b7d7f5535967d88a438ad7dcfe8f34c00ec31');
 });
 
-test('the paper body draws cut seams: open segments in quiet ink, three per die', () => {
+test('the paper body draws cut seams: open segments in quiet ink, three per die, joined at the nose by corner arcs', () => {
 	const svg = Dice.toss({ seed: 1 });
 	const seams = svg.match(/<path clip-path="url\(#[a-z][a-z0-9]{5}\)" d="M-?[\d.]+ -?[\d.]+L-?[\d.]+ -?[\d.]+" fill="none" stroke="#[0-9a-f]+" stroke-opacity=".15" stroke-width="[\d.]+" stroke-linecap="round"\/>/gu);
 	assert.equal(seams && seams.length, 9, 'three dice × three shared edges');
-	assert.equal(Dice.die({ seed: 1 }).match(/stroke-linecap="round"/gu).length, 3, 'one die: three seams');
+	const arcs = svg.match(/d="M-?[\d.]+ -?[\d.]+Q-?[\d.]+ -?[\d.]+ -?[\d.]+ -?[\d.]+" fill="none" stroke="#[0-9a-f]+" stroke-opacity=".15"/gu);
+	assert.equal(arcs && arcs.length, 9, 'the nose corners close through small Q-arcs — three dice × one per face');
+	const one = Dice.die({ seed: 1 });
+	assert.equal(one.match(/stroke-linecap="round"/gu).length, 6, 'one die: three seams + three nose arcs');
 	assert.equal(Dice.toss({ seed: 7, body: 'paper' }), Dice.toss({ seed: 7 }), "'paper' is the default, byte-identical");
 });
 

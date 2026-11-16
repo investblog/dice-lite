@@ -74,3 +74,10 @@ would overshoot the silhouette by the curve's sagitta (~6 units, visible).
 
 The clip stays as a belt-and-suspenders guard; the geometry now does the cutting. Budget
 consequence measured and recorded in ADR 006: 7596 → 8359 B, ceiling 8448.
+
+The trim alone proved insufficient the same hour: bare stops at the nose read as a ragged
+triple point — each face's corner still skewed, "you fixed only one face". So every pair of
+stops now joins through a small Q-arc with the control point at the nose — rquad2's own
+corner construction, tangent to both seams at any stop distance. One arc per face, same
+paint as the seams: every corner of every face reads rounded alike, and the nose matches the
+silhouette's vocabulary. Measured: 8432 B, still under the 8448 ceiling.

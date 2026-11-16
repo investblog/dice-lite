@@ -561,7 +561,7 @@
 			}
 			if (hits === 3) nose = SP[0][e0];
 		}
-		var hp = hull2(corners);
+		var hp = hull2(corners), stops = [];
 		for (i = 0; i < SP.length; i++) {
 			var W = SP[i][0], V = SP[i][1];
 			if (nose) {
@@ -575,6 +575,7 @@
 					if (lw < tn) tn = lw;
 				}
 				W = [W[0] + ux / luv * tn, W[1] + uy / luv * tn];
+				stops.push(W);
 			}
 			// the silhouette end: meet the rounded-corner Q-curve at V (rquad2's construction)
 			var vi = -1;
@@ -608,6 +609,17 @@
 			}
 			seams += el('path', ['clip-path', glass ? null : 'url(#' + cid + ')',
 				'd', 'M' + n(W[0], 1) + ' ' + n(W[1], 1) + 'L' + n(V[0], 1) + ' ' + n(V[1], 1), 'fill', 'none',
+				'stroke', glass ? c.col('outline') : c.col('ink'),
+				'stroke-opacity', glass ? null : '.15',
+				'stroke-width', n((glass ? 2.2 : 1.4) * c.w, 1), 'stroke-linecap', 'round']);
+		}
+		// the nose corners: bare stops read as a ragged triple point, each face's corner still
+		// skewed — so every pair of stops joins through a small Q-arc, control at the nose
+		// (rquad2's own corner construction: tangent to both seams at any stop distance)
+		if (nose && stops.length === 3) for (i = 0; i < 3; i++) for (var j3 = i + 1; j3 < 3; j3++) {
+			seams += el('path', ['clip-path', glass ? null : 'url(#' + cid + ')',
+				'd', 'M' + n(stops[i][0], 1) + ' ' + n(stops[i][1], 1) + 'Q' + n(nose[0], 1) + ' ' + n(nose[1], 1) +
+				' ' + n(stops[j3][0], 1) + ' ' + n(stops[j3][1], 1), 'fill', 'none',
 				'stroke', glass ? c.col('outline') : c.col('ink'),
 				'stroke-opacity', glass ? null : '.15',
 				'stroke-width', n((glass ? 2.2 : 1.4) * c.w, 1), 'stroke-linecap', 'round']);
