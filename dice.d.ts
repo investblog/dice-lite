@@ -4,6 +4,8 @@
 
 type Colour = string;
 type Pin = Colour | 'auto';
+/** rail: a colour pin, or a named mode — 'brand' the leftover brand colour, 'felt' no visible edge. */
+type RailPin = Pin | 'brand' | 'felt';
 
 declare namespace Dice {
 	/** A name that places values. Nothing is ever scored (ADR 003). */
@@ -23,7 +25,7 @@ declare namespace Dice {
 		/** line weight multiplier. */
 		weight?: number;
 		felt?: Pin;
-		rail?: Pin;
+		rail?: RailPin;
 		trim?: Pin;
 		die?: Pin;
 		pip?: Pin;
@@ -85,7 +87,7 @@ declare const Dice: {
 	toss(opts?: Dice.TossOptions): string;
 	/** Pure: one die on its em — an icon. */
 	die(opts?: Dice.DieOptions): string;
-	palette(brand?: string | string[], opts?: { theme?: 'dark' | 'light' }): Dice.Palette;
+	palette(brand?: string | string[], opts?: { theme?: 'dark' | 'light'; rail?: RailPin }): Dice.Palette;
 	/** Browser only. Returns null when the target finds nothing. */
 	init(target: string | Element, opts?: Dice.TossOptions): Dice.Handle | null;
 };

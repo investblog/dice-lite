@@ -39,3 +39,20 @@ did. Until then the cascade above is provisional.
   every role, the renderer never parses a pin.
 - A third brand colour and beyond are used by the lattice/trim cascade or not at all — the M1
   addendum records the decision on the default triad (blue felt, crimson rail, gold brass).
+
+## Addendum (2026-11-16) — the rail is a mode; the default edge is not a colour
+
+The concrete-table ritual happened on renders — five rail treatments of the default throw
+(seed 1, three dice, dark), judged by the user: a loud colour band reads as a design frame,
+not a table; no edge at all loses the table; a dark surround reads as what a casino table
+actually wears. Decision:
+
+- **`rail` is a mode, not a colour.** `'auto'` (the default) paints the padded edge in the pip
+  family's near-black — a dark leather surround, in both themes. `'brand'` keeps the cascade
+  above verbatim: the leftover chromatic colour pads the rail, a darker `derive()` stop of the
+  felt when nothing is left. `'felt'` paints the rail the felt — no visible edge. Any CSS
+  colour still pins the role, as with every role.
+- **The leftover question is answered: "or nothing".** Under the default mode a third brand
+  colour goes unused; the brand lands on the felt and the brass, the edge stays dark.
+- The `line` table is untouched — felt and rail draw as rules in `outline` either way, so the
+  mode changes only the flat table's fill.

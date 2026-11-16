@@ -190,9 +190,9 @@
 
 	// Dice claim almost no classic hues — the subject is paper and black — so the brand colours
 	// go where a casino table puts them: the felt takes the first chromatic brand colour, the
-	// trim is metal claiming a gold-hue colour (slots' formula), the rail takes the next colour
-	// left. die, pip, ink and outline are derived, never brand colours.
-	function roles(brand, theme) {
+	// trim is metal claiming a gold-hue colour (slots' formula). die, pip, ink and outline are
+	// derived, never brand colours — and neither is the rail's edge by default (ADR 004 addendum)
+	function roles(brand, theme, railMode) {
 		var list = brand == null ? DEFAULT_BRAND : typeof brand === 'string' ? [brand] : brand;
 		var chrom = [], grey = null, i;
 		for (i = 0; i < list.length; i++) {
@@ -208,8 +208,7 @@
 		var felt = derive(feltHex, dk);
 		// the family's capture with the table's windows, each colour at most once: the felt
 		// takes the first chromatic colour; trim claims a gold-hue colour for the brass — not
-		// the felt's; the rail takes the next chromatic colour left (ADR 004: on the default
-		// triad the blue is the felt, the gold tones the brass, the crimson pads the rail)
+		// the felt's. The leftover colour is claimed only by rail: 'brand' (ADR 004)
 		var goldI = -1, goldD = Infinity;
 		for (i = 1; i < chrom.length; i++) {
 			var d = Math.abs(chrom[i].lch[2] - 85) % 360;
@@ -219,18 +218,20 @@
 		if (goldD > 30) goldI = -1; // the window is ±30° around the gold centre
 		var gold = goldI >= 0 ? chrom[goldI].lch : null;
 		var trim = lch2rgb(66, grey || !chrom.length ? 0 : gold ? gold[1] * 0.5 : 25, gold ? gold[2] : 85);
-		// rail: that leftover colour, verbatim; with nothing left, a darker derive() stop of
-		// the felt — the darkest under dark, the darkest light-theme stop under light
-		var railHex = null;
-		for (i = 1; i < chrom.length; i++) {
-			if (i !== goldI) { railHex = chrom[i].hex; break; }
-		}
-		var rail = railHex ? parseColor(railHex) : felt.colors[dk === 'light' ? 2 : 0];
 		// the dice are the classic: paper in both themes, near-black pips and shadows (cards'
 		// stock/spade/ink formulas, the paper as their contrast reference)
 		var die = lch2rgb(96.5, Math.min(bC * 0.08, 4), bH);
 		var pip = ensureContrast(lch2rgb(14, Math.min(bC * 0.15, 6), bH), die, 7, -1);
 		var ink = ensureContrast(lch2rgb(34, Math.min(bC * 0.25, 10), bH), die, 3, -1);
+		// the rail is a mode, not a colour (ADR 004 addendum): 'auto' — the pip family's
+		// near-black, the dark surround a casino table wears; 'brand' — the leftover chromatic
+		// colour, else a darker derive() stop of the felt; 'felt' — painted the felt, no edge
+		var railHex = null;
+		for (i = 1; i < chrom.length; i++) {
+			if (i !== goldI) { railHex = chrom[i].hex; break; }
+		}
+		var rail = railMode === 'brand' ? (railHex ? parseColor(railHex) : felt.colors[dk === 'light' ? 2 : 0])
+			: railMode === 'felt' ? parseColor(feltHex) : pip;
 		// the field the table sits on is the family's palette of the whole brand, so a throw on a
 		// sibling field reads as one picture (pinned by the parity fixture)
 		var field = derive(list, dk);
@@ -247,8 +248,10 @@
 	}
 
 	function palette(brand, opts) {
-		var r = roles(brand, opts && opts.theme), out = {};
+		var pin = opts && opts.rail, r = roles(brand, opts && opts.theme, pin), out = {};
 		for (var k in r) out[k] = k === 'stroke' ? r[k].map(toHex) : toHex(r[k]);
+		// pins win here as in the renderer: an arbitrary colour comes back verbatim (spec: Pins)
+		if (pin != null && pin !== 'auto' && pin !== 'brand' && pin !== 'felt') out.rail = pin;
 		return out;
 	}
 
@@ -269,7 +272,7 @@
 	// ── the context ─────────────────────────────────────────────────────────
 
 	function context(o, what) {
-		var S = streams(o.seed == null ? 1 : o.seed), r = roles(o.brand, o.theme), seen = {}, key = what;
+		var S = streams(o.seed == null ? 1 : o.seed), r = roles(o.brand, o.theme, o.rail), seen = {}, key = what;
 		var c = {
 			o: o, S: S, defs: '',
 			p: o.precision == null ? 0 : o.precision,
@@ -278,7 +281,8 @@
 			cab: o.style ? o.style !== 'line' : o.theme !== 'light',
 			col: function (role) {
 				var pin = o[role];
-				return pin != null && pin !== 'auto' ? esc(pin) : toHex(r[role]);
+				// rail's 'brand'/'felt' are modes resolved in roles(), never literal colours
+				return pin != null && pin !== 'auto' && !(role === 'rail' && (pin === 'brand' || pin === 'felt')) ? esc(pin) : toHex(r[role]);
 			}
 		};
 		// Ids are keyed by WHAT IS DRAWN — the geometry and every colour a def carries — so two

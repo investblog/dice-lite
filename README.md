@@ -48,11 +48,13 @@ table.destroy();
 ## Why it looks the way it looks
 
 The brand's colours become the casino table: the first chromatic colour felts it, a gold-hue
-colour tones the brass trim, the next colour left pads the rail; the dice stay paper with
-near-black pips in every brand. Under `theme: 'light'` the table defaults to a `line` drawing
-— a filled felt over a white page was a pastel field in every sibling that tried it. The
-picture carries **no fixed path data**: every coordinate is computed from the seed, so same
-(seed, options) → identical bytes, always.
+colour tones the brass trim; the dice stay paper with near-black pips in every brand. The
+table's edge wears that same near-black — a dark surround, never a colour — and `rail:
+'brand'` / `rail: 'felt'` / any colour pin reshapes it (`'brand'` brings back the brand-coloured
+pad). Under `theme: 'light'` the table defaults to a `line` drawing — a filled felt over a
+white page was a pastel field in every sibling that tried it. The picture carries **no fixed
+path data**: every coordinate is computed from the seed, so same (seed, options) → identical
+bytes, always.
 
 ## Install
 

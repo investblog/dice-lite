@@ -11,5 +11,7 @@ bump.
   seeded placement and values, the brand-coloured felt/rail/trim cascade with the light-theme
   `line` escape, five results (`lucky7`, `snake`, `boxcars`, `matched`, `mixed`) as data,
   `values` pins, the one-shot CSS settle with `prefers-reduced-motion` support, `palette()`,
-  `die()`, `init()` and `dice.d.ts`. Library 7227 B gzipped (budget frozen at 7424, ADR 006
-  addendum); a `dice: 3` throw averages 9347 B raw / 2345 B gzip over 60 seeds.
+  `die()`, `init()` and `dice.d.ts`. The rail is a mode: `'auto'` (default) the dark surround,
+  `'brand'` the leftover brand colour, `'felt'` no edge, any colour pins it (ADR 004 addendum).
+  Library 7299 B gzipped (budget frozen at 7424, ADR 006 addendum); a `dice: 3` throw averages
+  9347 B raw / 2345 B gzip over 60 seeds.

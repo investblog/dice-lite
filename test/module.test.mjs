@@ -54,12 +54,25 @@ test('every role resolves to a colour, for every brand in both themes', () => {
 	}
 });
 
-test('the default triad: blue is the felt, crimson pads the rail, gold tones the brass', () => {
+test('the default triad: blue is the felt, the edge is the dark surround, gold tones the brass', () => {
 	const p = Dice.palette();
 	assert.equal(p.felt, '#00abf3', 'the brand main colour becomes the table');
-	assert.equal(p.rail, '#a91455', 'the second chromatic colour pads the rail, verbatim');
+	assert.equal(p.rail, p.pip, 'the default edge is the pip-family near-black, not a colour');
+	assert.equal(Dice.palette(undefined, { rail: 'brand' }).rail, '#a91455',
+		"'brand' keeps the cascade: the second chromatic colour pads the rail, verbatim");
 	const ch = p.trim.slice(1).match(/../gu).map((h) => parseInt(h, 16));
 	assert.ok(Math.max(...ch) - Math.min(...ch) > 8, 'the triad trim is brass, not chrome');
+});
+
+test('the rail modes: dark surround by default, leftover colour on demand, felt for no edge', () => {
+	for (const theme of ['dark', 'light']) {
+		const p = Dice.palette(undefined, { theme });
+		assert.equal(p.rail, p.pip, `the default rail is the near-black surround (${theme})`);
+		assert.equal(Dice.palette(undefined, { theme, rail: 'felt' }).rail, p.felt,
+			`'felt' paints the rail the felt — no visible edge (${theme})`);
+	}
+	const brand = Dice.palette(['#00abf3', '#d6af3c', '#a91455'], { rail: 'brand' });
+	assert.equal(brand.rail, '#a91455', "'brand' claims the leftover colour verbatim");
 });
 
 test('the felt cascade: first chromatic, else the grey, else the spintax blue', () => {
@@ -77,13 +90,13 @@ test('the brass claims the NEAREST gold-hue colour, not the first one listed (sp
 	assert.ok(away(hue(t), 85) < away(hue(far), 85), 'not the first-listed gold');
 });
 
-test('a grey brand gets chrome trim; a rail with no second colour is a darker stop of the felt', () => {
+test('a grey brand gets chrome trim; under rail: brand a lone colour falls back to a felt stop', () => {
 	const chrome = Dice.palette('#8a8a8a').trim;
 	const ch = chrome.slice(1).match(/../gu).map((h) => parseInt(h, 16));
 	assert.ok(Math.max(...ch) - Math.min(...ch) <= 1, `chrome is achromatic: ${chrome}`);
 	for (const theme of ['dark', 'light']) {
-		const p = Dice.palette('#00abf3', { theme });
-		assert.ok(SUM(p.rail) < SUM(p.felt), `the fallback rail is darker than the felt (${theme})`);
+		const p = Dice.palette('#00abf3', { theme, rail: 'brand' });
+		assert.ok(SUM(p.rail) < SUM(p.felt), `the brand-mode fallback rail is darker than the felt (${theme})`);
 	}
 });
 
@@ -102,6 +115,15 @@ test('pins win, and are escaped rather than parsed', () => {
 	const svg = Dice.toss({ felt: 'var(--x, "#123")', rail: 'auto' });
 	assert.match(svg, /fill="var\(--x, &quot;#123&quot;\)"/u);
 	assert.ok(svg.includes(`fill="${Dice.palette().rail}"`), "'auto' unpins the rail");
+	assert.ok(Dice.toss({ rail: 'brand' }).includes(`fill="${Dice.palette(undefined, { rail: 'brand' }).rail}"`),
+		"'brand' is a mode resolved by the cascade, not a pasted colour word");
+	// the OUTER rect is the rail (dice.js paints rail, felt, lattice in that order) — a whole-svg
+	// includes() would stay green if 'felt' were pasted literally onto the rail, because the
+	// inner felt rect still carries the felt colour
+	assert.equal(Dice.toss({ rail: 'felt' }).match(/<\/defs><rect[^>]*fill="([^"]+)"/u)[1],
+		'#00abf3', "'felt' paints the rail rect the felt — a mode, not a pasted word");
+	assert.equal(Dice.palette(undefined, { rail: '#ff0000' }).rail, '#ff0000',
+		'palette() reflects an arbitrary colour pin, as the renderer does');
 });
 
 test('the table style: flat fills by default, line draws rules under a light theme', () => {

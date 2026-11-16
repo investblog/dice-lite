@@ -179,7 +179,7 @@ casino table puts them:
 | Role | Where it comes from | Draws |
 |---|---|---|
 | `felt` | the first chromatic brand colour (chroma ≥ 12); else the grey one; else the spintax blue | the table surface |
-| `rail` | the next chromatic brand colour once the felt and the trim's gold are claimed; else a darker `derive()` stop of the felt | the table's padded edge |
+| `rail` | a **mode**, not a colour: `'auto'` (default) the pip family's near-black — the table's dark surround; `'brand'` the cascade below; `'felt'` paints the rail the felt — no visible edge. Any CSS colour pins it | the table's padded edge |
 | `trim` | metal, as in slots: brass from a gold-hue brand colour at lower chroma, chrome for a grey brand | the lattice's fine lines, the table line |
 | `die` | the family's paper formula, lch(96.5, min(C·0.08, 4), H) — **both themes** | the die bodies |
 | `pip` | near-black, cards' `spade` formula | the pips |
@@ -187,23 +187,27 @@ casino table puts them:
 | `outline` | the `line` table's rule: the felt hue's middle `derive()` stop, guaranteed ≥ 2.5 against the page | felt and rail rules |
 
 With the default spintax triad the **blue is the felt** — the brand's main colour becomes the
-table, which is what a hero background wants; the crimson pads the rail, the gold tones the
-brass. Derived roles (`die`, `pip`, `ink`, `outline`) are never brand colours.
+table, which is what a hero background wants; the gold tones the brass; and the edge wears the
+near-black surround, not a colour. Derived roles (`die`, `pip`, `ink`, `outline`) are never
+brand colours, and under the default rail mode neither is the edge — `rail: 'brand'` opts back
+into the cascade (on the triad: the crimson pads the rail), `rail: 'felt'` removes the edge.
 
-**The table was decided at M1** on a prototype outside the library — seven brands × both
-themes, the marks at 360 px — by the user (ADR 004's addendum), the same ritual as slots'
-cabinet. Provisional until then: the `rail` cascade above, and the light-theme `line` default.
+**The table was decided at M1** on renders — five rail treatments against the default throw,
+by the user (ADR 004's addendum): a loud colour band reads as a design frame, no edge loses the
+table, the dark surround reads as what a casino table wears. The addendum is decided; the
+light-theme `line` default stands.
 
 **Pins win.** Any role accepts any CSS colour string; the renderer never parses a pin, only
-escapes `" < > &`. `'auto'` unpins. One deliberate exception, because dice shade with
+escapes `" < > &`. `'auto'` unpins. `rail` additionally accepts its named modes `'brand'` and
+`'felt'` — modes resolve inside the cascade, never as literal colours. One deliberate exception, because dice shade with
 gradients: a `#hex`/`rgb()` pin on `die` or `pip` is mixed in LCh into that part's light and
 shade; any other string (`var(…)`, named colours) is used verbatim for every stop, escaped.
 
 **The invariant:** *every throw reads as dice on a table whatever the brand — paper dice, black
 pips, a brand-coloured felt; and the brand lands on the table — the first chromatic colour
-felts it, the next colour left pads the rail. What a third colour does — the lattice/trim
-cascade or nothing — is the M1 addendum's question (ADR 004), and until it is answered such a
-colour may go unused.*
+felts it. The edge is never a colour by default: a leftover brand colour goes unused unless
+`rail: 'brand'` claims it (ADR 004's addendum) — the question this invariant used to leave open
+is answered: "or nothing", by default.*
 
 ## Determinism
 
@@ -263,7 +267,7 @@ and footer: "Made in [301](https://301.st) · for [spintax.net](https://spintax.
 ```js
 Dice.toss(opts)              // → string. The whole throw: table + dice. Pure; Node and browser.
 Dice.die(opts)               // → string. One die on its em — an icon. Pure.
-Dice.palette(brand, {theme}) // → {felt, rail, trim, die, pip, ink, outline, background, halo, stroke}
+Dice.palette(brand, {theme, rail}) // → {felt, rail, trim, die, pip, ink, outline, background, halo, stroke}
 Dice.init(el, opts)          // browser → {el, get(), set(opts), destroy()}, or null when el finds nothing
 ```
 
@@ -276,7 +280,8 @@ Dice.init(el, opts)          // browser → {el, get(), set(opts), destroy()}, o
 | `theme` | `'dark'` | `'dark'` \| `'light'` — derived colours only |
 | `style` | `'flat'` | `'line'` \| `'flat'`; the table defaults to `line` under `theme: 'light'` |
 | `weight` | `1` | line weight multiplier |
-| `felt rail trim die pip ink outline` | `'auto'` | any CSS colour string |
+| `felt trim die pip ink outline` | `'auto'` | any CSS colour string |
+| `rail` | `'auto'` | `'auto'` \| `'brand'` \| `'felt'` — the edge mode (above), or any CSS colour string |
 | `size` | — | width; the height follows the viewBox |
 | `precision` | `0` | decimals for coordinates |
 | `salt` | `''` | extra entropy for ids — the same picture twice on one page |

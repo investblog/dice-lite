@@ -51,6 +51,7 @@
 		<label>theme <select data-k="theme"><option>dark</option><option>light</option></select></label>
 		<label class="brand">brand <span class="row"><input type="color" data-b="0" value="#00abf3"><input type="color" data-b="1" value="#d6af3c"><input type="color" data-b="2" value="#a91455"><button id="spintax" title="the spintax triad">↺</button></span></label>
 		<label>style <select data-k="style"><option value="auto">auto — table by theme</option><option>flat</option><option>line</option></select></label>
+		<label>rail <select data-k="rail"><option value="auto">auto — dark surround</option><option value="brand">brand colour</option><option value="felt">none — felt</option></select></label>
 		<label>dice <select data-k="dice"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label>
 		<label>result <select data-k="result"><option value="">— the seed's —</option><option>lucky7</option><option>snake</option><option>boxcars</option><option>matched</option><option>mixed</option></select></label>
 		<label>values <input type="text" data-k="values" placeholder="e.g. 4,,2" title="comma list; empty = the seed/result"></label>
@@ -80,7 +81,7 @@
 		var RESULTS = ['lucky7', 'snake', 'boxcars', 'matched', 'mixed'];
 		var FACES = ['one', 'two', 'three', 'four', 'five', 'six'];
 		// the panel starts on the library's own defaults, so the first render IS Dice.toss()
-		var opts = { seed: '1', theme: 'dark', brand: TRIAD.slice(), style: 'auto', dice: 3,
+		var opts = { seed: '1', theme: 'dark', brand: TRIAD.slice(), style: 'auto', rail: 'auto', dice: 3,
 			result: '', values: '', lattice: 'auto', weight: 1, motion: false, speed: 1 };
 		var stage = document.getElementById('stage'), mode = document.getElementById('mode');
 		var seedInput = document.querySelector('[data-k=seed]'), bytes = document.getElementById('bytes');
@@ -104,6 +105,7 @@
 			var o = Object.assign({}, opts, { seed: seedValue(), dice: Number(opts.dice), weight: Number(opts.weight) }, extra || {});
 			var values = valuesList();
 			if (o.style === 'auto') delete o.style;
+			if (o.rail === 'auto') delete o.rail;
 			if (o.lattice === 'auto') delete o.lattice;
 			if (!o.result) delete o.result;
 			if (extra && extra.values === null) delete o.values;
