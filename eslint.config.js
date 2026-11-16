@@ -3,7 +3,9 @@
 // are modern ES modules run by Node. CommonJS on purpose: there is no "type": "module" here.
 module.exports = [
 	{
-		ignores: ['*.min.js', '*.d.ts', 'node_modules/', '.agents/'],
+		// temp/ is the gitignored scratch dir — one-off probes live and die there; they are not
+		// product code and must not hold a commit hostage (a debug *.mjs blocked M5's commit)
+		ignores: ['*.min.js', '*.d.ts', 'node_modules/', '.agents/', 'temp/'],
 	},
 	{
 		files: ['**/*.js'],

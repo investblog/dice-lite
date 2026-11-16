@@ -11,6 +11,14 @@ projected pips, opposite sides summing to seven by construction. A result such a
 seven is a named preset that places values; nothing is ever scored. Zero dependencies, ~7 KB
 minified and gzipped.
 
+[![npm](https://img.shields.io/npm/v/@spintax/dice-lite.svg)](https://www.npmjs.com/package/@spintax/dice-lite)
+[![license](https://img.shields.io/npm/l/@spintax/dice-lite.svg)](LICENSE)
+
+**[Live demo →](https://investblog.github.io/dice-lite/)** — the throw's options on controls:
+seed stepping, a 24-seed contact sheet, every result, and the six faces.
+
+[![A lucky seven on the spintax-blue felt: three paper dice, the front two showing an ace and a six](https://investblog.github.io/dice-lite/docs/preview.svg)](https://investblog.github.io/dice-lite/)
+
 ```js
 const Dice = require('@spintax/dice-lite');
 
@@ -53,8 +61,19 @@ npm install @spintax/dice-lite
 ```
 
 ES5, one file, UMD tail — CommonJS, ESM default import and a plain `<script>` (global
-`Dice`) all work. `dice.d.ts` ships the types. Playground: serve the repo and open
-`index.html`.
+`Dice`) all work. `dice.d.ts` ships the types. **[Playground →](https://investblog.github.io/dice-lite/)**
+
+## The family
+
+dice-lite is a sibling of seven zero-dependency libraries by the same hands —
+[slots-lite](https://github.com/investblog/slots-lite) (its closest relative — a slot machine
+drawn whole, whose colour engine and seeding it shares),
+[cards-lite](https://github.com/investblog/cards-lite),
+[roulette-lite](https://github.com/investblog/roulette-lite),
+[trigons-lite](https://github.com/investblog/trigons-lite),
+[hexagons-lite](https://github.com/investblog/hexagons-lite),
+[octagons](https://github.com/investblog/octagons) and
+[qr-svg](https://github.com/investblog/qr-svg).
 
 ## Licence and credits
 
