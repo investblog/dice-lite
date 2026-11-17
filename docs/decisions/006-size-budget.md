@@ -100,5 +100,7 @@ output across engines is the contract. Raise number four, each a user-visible fi
 The output was measured twice. Fillets as their own `<path>`s cost +17% raw on a paper
 `dice: 3` (13805 B); riding the seam's path as subpaths — one paint, so it is the same
 picture, and the quiet paper ink no longer doubles where a fillet leaves its seam — brings it
-to **12257 / 2714 B** (+3.6% raw, +5.7% gzip over 0.3.0; worst seed 13514 / 2883). Glass
-`dice: 3` 8600 / 1806, paper `dice: 5` 19229 / 3888.
+to 12257 / 2714 B. Rounding the depth scale (it leaked as `0.9500000000000001`) then
+saved 56 B a throw and cost the library 2 B: **8786 B gzipped**; a paper `dice: 3` averages
+**12201 / 2711 B** (+3.1% raw, +5.6% gzip over 0.3.0; worst seed 13458 / 2881), glass
+8544 / 1802, paper `dice: 5` 19173 / 3883.

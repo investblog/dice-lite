@@ -12,8 +12,10 @@ bump.
   arcs, no face of a die keeps a square corner (ADR 007 addendum). Most visible in `glass`;
   quiet in `paper`. The one-stroke pull-back at the seam end is retired.
 - The fillets ride their seam's `<path>` as subpaths: one paint, no doubled ink where a
-  fillet leaves its seam. A `dice: 3` paper throw grows 3.6% raw (12257 B average).
-- Library 8784 B gzipped, budget raised to 8832 (ADR 006 addendum).
+  fillet leaves its seam. A `dice: 3` paper throw grows 3.1% raw (12201 B average).
+- The depth scale is rounded like every other number: `scale(0.9500000000000001)` is now
+  `scale(0.95)` (0 pixels changed; a new test fails on any 5th decimal in the output).
+- Library 8786 B gzipped, budget raised to 8832 (ADR 006 addendum).
 
 ## 0.3.0 — 2026-11-17
 

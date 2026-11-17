@@ -766,7 +766,7 @@
 			var px = SLOTS[i][0] * SLOT_A + (S('die:' + i + ':place')() - 0.5) * 2 * JIT * SLOT_A;
 			var py = SLOTS[i][1] * SLOT_A + (S('die:' + i + ':place:v')() - 0.5) * 2 * JIT * SLOT_A;
 			var scale = 0.9 + 0.1 * (SLOTS[i][1] + 1) / 2;
-			var g = 'translate(' + n(px, 1) + ' ' + n(py, 1) + ')' + (scale !== 1 ? ' scale(' + scale + ')' : '');
+			var g = 'translate(' + n(px, 1) + ' ' + n(py, 1) + ')' + (scale !== 1 ? ' scale(' + n(scale, 4) + ')' : '');
 			var dd = die(c, values[i], yaw);
 			var inner = dd.content, cls = null;
 			if (mo) {

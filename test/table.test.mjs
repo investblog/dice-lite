@@ -139,6 +139,21 @@ test('no die stands inside another: every pair of slots is one cube edge apart o
 	}
 });
 
+test('no float noise: every number in the output is rounded on purpose', () => {
+	// the lattice rounds to 3 decimals and the depth scale to 4, everything else to 2 or fewer —
+	// a 5th decimal is an unrounded number leaking through (0.95 written as 0.9500000000000001)
+	for (const seed of [1, 'spintax.net', 77]) {
+		for (const dice of [2, 3, 4, 5]) {
+			for (const body of ['paper', 'glass']) {
+				const svg = Dice.toss({ seed, dice, body, motion: 'roll' });
+				const noise = svg.match(/\d\.\d{5,}/u);
+				assert.equal(noise, null, `seed ${seed} dice ${dice} ${body}: ${noise && noise[0]}`);
+			}
+		}
+	}
+	assert.equal(Dice.die({ seed: 3 }).match(/\d\.\d{5,}/u), null, 'the icon too');
+});
+
 test('lattice kinds and none', () => {
 	assert.ok(Dice.toss().includes('<pattern'), 'auto draws the lattice');
 	assert.ok(Dice.toss({ lattice: 'trigon' }).includes('<pattern'));
