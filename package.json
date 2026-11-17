@@ -1,6 +1,6 @@
 {
   "name": "@spintax/dice-lite",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A procedural throw of dice as an SVG string. Seeded placement and values, brand-aware table palette, paper or frosted-glass bodies, an optional CSS roll. Zero dependencies; runs in Node at build time and in the browser.",
   "main": "dice.js",
   "types": "dice.d.ts",
