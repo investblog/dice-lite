@@ -105,10 +105,13 @@ const MUTATIONS = [
 	{ label: 'the lattice never drawn', edits: [["if (o.lattice === 'none') return ['fill', 'none'];", "if (true) return ['fill', 'none'];"]] },
 	{ label: 'id key without the table style', edits: [['key += c.cab + c.w + c.p', 'key += c.w + c.p']] },
 	{ label: 'salt ignored for ids', edits: [['tokens(S, (o.salt || \'\') + key)', 'tokens(S, key)']] },
-	{ label: 'pins ignored', edits: [["return pin != null && pin !== 'auto' ? esc(pin) : toHex(r[role]);", 'return toHex(r[role]);']] },
+	// re-anchored in 0.3.0: the rail modes rewrote this line in dfe8d9a and the mutation sat SKIPped since
+	{ label: 'pins ignored', edits: [["return pin != null && pin !== 'auto' && !(role === 'rail' && (pin === 'brand' || pin === 'felt')) ? esc(pin) : toHex(r[role]);", 'return toHex(r[role]);']] },
+	{ label: 'a neutral turns the brass to chrome', edits: [['var trim = lch2rgb(66, !chrom.length ? 0', 'var trim = lch2rgb(66, grey || !chrom.length ? 0']] },
 	{ label: 'the airbrush painted clear', edits: [["'stop-opacity', '.22'", "'stop-opacity', '0'"]] },
 	{ label: 'the rest table lies', edits: [['6: function (p) { return rotX(p, Math.PI); }', '6: function (p) { return p; }']] },
 	{ label: 'a lucky7 of ones', edits: [['return used.l7[i];', 'return 1;']] },
+	{ label: 'a lucky7 of doubles', edits: [['if (vals[1 - i]) return 7 - vals[1 - i];', 'if (vals[1 - i]) return vals[1 - i];']] },
 	{ label: 'mixed repeats itself', edits: [['used[val] = 1;', '']] },
 	{ label: 'the settle travels up', edits: [["'{from{transform:translateY(' + n(-drop, 1) + 'px)}}.'", "'{from{transform:translateY(' + n(drop, 1) + 'px)}}.'"]] },
 	// the settle check guards `from` with no `to`, so breaking it takes both halves: something to

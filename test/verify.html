@@ -73,6 +73,12 @@
 		const lucky = t({ seed: 'r', result: 'lucky7' });
 		const sum = lucky[0] + lucky[1];
 		if (sum !== 7 || lucky[0] === lucky[1]) return false;
+		// the seed chooses among all three sevens: a lucky7 that always shows one pair is broken
+		const pairs = new Set(['r', 's', 't', 'u', 'v', 'w', 'x', 'y'].map((seed) => {
+			const v = t({ seed, result: 'lucky7' });
+			return Math.min(v[0], v[1]);
+		}));
+		if (pairs.size !== 3) return false;
 		const matched = t({ seed: 'r', dice: 4, result: 'matched' });
 		if (new Set(matched).size !== 1) return false;
 		const mixed = t({ seed: 'r', dice: 4, result: 'mixed' });
@@ -106,6 +112,11 @@
 	});
 
 	check('pins win', () => Dice.toss({ seed: 1, felt: 'var(--x, "#123")' }).includes('fill="var(--x, &quot;#123&quot;)"'));
+
+	check('a neutral in the brand keeps the brass', () => {
+		const triad = ['#00abf3', '#d6af3c', '#a91455'];
+		return Dice.palette(triad.concat('#ffffff')).trim === Dice.palette(triad).trim;
+	});
 
 	check('the airbrush carries its light', () => {
 		const host = document.createElement('div');

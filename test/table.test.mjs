@@ -132,5 +132,14 @@ test('size sets the width and the height follows the viewBox; precision rounds c
 	const [, , w, h] = Dice.toss({ size: 360 }).match(/viewBox="([^"]*)"/u)[1].split(' ').map(Number);
 	assert.match(svg, /width="360"/u);
 	assert.match(svg, new RegExp(`height="${Math.round(360 * h / w)}"`, 'u'));
-	assert.match(Dice.toss({ precision: 2 }), /\.\d/u, 'precision exposes the decimals');
+	// the dice always carry one decimal, so the probe reads only what precision governs: the
+	// viewBox and the table's rects (the old `/\.\d/` over the whole string could never fail)
+	const tableNums = (s) => [s.match(/viewBox="([^"]*)"/u)[1], ...[...s.matchAll(/<rect ([^>]*)\/>/gu)].map((m) => m[1])]
+		.join(' ').match(/-?\d+(?:\.\d+)?/gu);
+	for (const seed of [1, 'p', 9]) {
+		assert.ok(tableNums(Dice.toss({ seed })).every((v) => !v.includes('.')), `seed ${seed}: precision 0 draws whole numbers`);
+		const two = tableNums(Dice.toss({ seed, precision: 2 }));
+		assert.ok(two.some((v) => /\.\d/u.test(v)), `seed ${seed}: precision 2 exposes the seeded rail's decimals`);
+		assert.ok(two.every((v) => !/\.\d{3}/u.test(v)), `seed ${seed}: …and never more than two`);
+	}
 });

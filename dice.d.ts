@@ -16,7 +16,7 @@ declare namespace Dice {
 	interface Common {
 		/** A string (a domain name is fine) or a number taken as a 32-bit unsigned integer. */
 		seed?: number | string;
-		/** hex or hex[]; default the spintax triad. */
+		/** `#rgb`/`#rrggbb` or `rgb()` — one or a list; default the spintax triad. Anything else (a named colour, `var()`) reads as white. */
 		brand?: string | string[];
 		/** derived colours only. */
 		theme?: 'dark' | 'light';
@@ -35,7 +35,7 @@ declare namespace Dice {
 		outline?: Pin;
 		/** width; the height follows the viewBox. */
 		size?: number;
-		/** decimals for coordinates. */
+		/** decimals for the table's coordinates and the viewBox; the dice are always one decimal. */
 		precision?: number;
 		/** extra entropy for ids — the same picture twice on one page. */
 		salt?: string;

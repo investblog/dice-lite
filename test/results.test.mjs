@@ -44,6 +44,10 @@ test('lucky7: dice 0 and 1 are one of (1,6), (2,5), (3,4); the rest keep the see
 	const plain = topValues(Dice.toss({ seed: 'same', dice: 4 }));
 	const lucky = topValues(Dice.toss({ seed: 'same', result: 'lucky7', dice: 4 }));
 	assert.deepEqual(lucky.slice(2), plain.slice(2), 'dice 2+ keep the seed under lucky7');
+	// the seed chooses among all three sevens, and either die may carry the low one
+	const shown = new Set(['r', 's', 't', 'u', 'v', 'w', 'x', 'y'].map((seed) => topValues(Dice.toss({ seed, result: 'lucky7' })).slice(0, 2).join('+')));
+	assert.equal(new Set([...shown].map((p) => Math.min(...p.split('+').map(Number)))).size, 3, `all three pairs appear: ${[...shown]}`);
+	assert.ok([...shown].some((p) => +p[0] > +p[2]) && [...shown].some((p) => +p[0] < +p[2]), 'the swap draw orders the pair both ways');
 });
 
 test('snake and boxcars: dice 0 and 1 are aces / sixes, the rest keep the seed', () => {
