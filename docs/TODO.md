@@ -24,15 +24,21 @@ along the way. The milestones are the v0.1 plan; this list is its public index.
 - [x] M3 — the five results with their longhand checker, the settle (ADR 005 addendum),
   `init()`, `dice.d.ts`, output size measured, the budget frozen at 7424 at M3 and raised to
   8704 by the ADR 007 addenda (ADR 006).
-- [ ] M4 — `test/verify.html` + `--mutate` in three engines × two motion modes; `index.html`;
+- [x] M4 — `test/verify.html` + `--mutate` in three engines × two motion modes; `index.html`;
   CI/release/bootstrap-publish workflows; README, CHANGELOG, RELEASING.
-- [ ] M5 — integration in a static site, then `0.1.0` on the user's go: repo, bootstrap
-  publish, Trusted Publisher, token deleted.
+- [x] M5 — repo and demo on GitHub Pages (b24341e), bootstrap publish of 0.1.0 with
+  provenance, Trusted Publisher, tag v0.1.0 green by dupe-check, bootstrap workflow retired
+  (4218370). 0.2.0 went out over OIDC on 2026-11-17 — the pipeline's first full run. Still
+  open from this milestone: integration in the user's static site (the site was never named);
+  the NPM_TOKEN secret and the npm granular token await the user's deletion.
 
 ## Outside v0.1
 
-- A perspective die — three visible faces, the silhouette as real path data, opposite sides
-  sum to seven (ADR 002's backlog; re-opens the counted-exception question).
+- ~~A perspective die — three visible faces, the silhouette as real path data, opposite
+  sides sum to seven~~ — struck 2026-11-16: this is the shipped subject since M1 (ADR 002
+  addendum, 2026-11-15; M2 built the projected rounded cube, the rest-table net and the
+  exact pip ellipses). The line was ADR 002's backlog, written before the on-screen ritual
+  decided it; kept as provenance, not as work.
 - A dice cup (backgammon) and a craps table's betting layout — illustration-only, and each an
   ADR of its own.
 - More than six values (polyhedral dice, d8/d20) — a different subject, not a variant.
