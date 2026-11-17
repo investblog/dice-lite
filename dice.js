@@ -656,8 +656,10 @@
 		// own every paint, and its d is computed from the yaw, keeping zero-d honest
 		c.defs += el('path', ['id', sid, 'd', sil]) + el('clipPath', ['id', cid], el('use', ['href', '#' + sid]));
 		return {
+			// the contact shadow sits wholly under the body: a paper die hides every pixel of it
+			// (raster subtraction, 0.3.0), so only the see-through glass draws it
 			shadow: el('ellipse', ['cx', 0, 'cy', 118, 'rx', 132, 'ry', 24, 'fill', c.col('ink'), 'fill-opacity', '.16', 'filter', 'url(#' + d.b14 + ')']) +
-				el('ellipse', ['cx', 0, 'cy', 112, 'rx', 62, 'ry', 11, 'fill', c.col('ink'), 'fill-opacity', '.18', 'filter', 'url(#' + d.b5 + ')']),
+				(glass ? el('ellipse', ['cx', 0, 'cy', 112, 'rx', 62, 'ry', 11, 'fill', c.col('ink'), 'fill-opacity', '.18', 'filter', 'url(#' + d.b5 + ')']) : ''),
 			content: glass
 				? el('use', ['href', '#' + sid, 'fill', esc(c.dieGlass), 'fill-opacity', '.55', 'stroke', c.col('outline'), 'stroke-width', n(2.6 * c.w, 1)]) +
 					el('g', ['clip-path', 'url(#' + cid + ')'], faces + seams)

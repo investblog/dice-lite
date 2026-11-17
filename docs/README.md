@@ -66,7 +66,7 @@ Origin at the centre of the table, y down. Constants were tuned to the reference
 | `FELT` | margin 90 | felt inset from the viewBox at the long side, 64 at the short |
 | `RAIL` | 22–34 | the rail width, one seeded draw (`table:rail`) |
 | `JITTER` | ±0.06 | positional scatter around the canonical slot (yaw is the orientation) |
-| `SHADOW` | broad + contact + seam | broad ellipse α .16 blur 14 + contact α .18 blur 5; a seam pool α .14 where dice touch |
+| `SHADOW` | broad + contact + seam | broad ellipse α .16 blur 14; a seam pool α .14 where dice touch; the contact ellipse α .18 blur 5 only under a glass body — a paper body hides every pixel of it (raster subtraction, 0.3.0) |
 
 The felt is sized to the **projected** dice: the cube's half-extents at the yaw range are
 ≈131 × 164, ~17% over the flat half-diagonal, and the canonical slot clearance accounts for
@@ -79,7 +79,7 @@ it. The viewBox follows `dice`: the felt is sized to the canonical slots plus ma
 |---|---|---|
 | Felt | the table surface; carries the lattice at a low weight | no |
 | Rail | a padded ring around the felt in `rail` | width, corner |
-| Shadow | broad + contact `<ellipse>`s per die, a seam pool where dice touch | — |
+| Shadow | a broad `<ellipse>` per die (plus a contact one under glass), a seam pool where dice touch | — |
 | Die | a rounded cube: silhouette = rounded hull of the 8 projected corners; faces = projected quads under a shared airbrush | yaw, value |
 | Seams | the three interior edges of the visible faces — open segments between the **true** corners (the drawn quads use HG = H + 2 and overlap on purpose, so they cannot serve); both ends stop where the corner rounding starts — at the silhouette the seam meets rquad2's rounded-corner Q-curve, at the nose a same-radius tangent trim — and every pair of nose stops joins through a small Q-arc, one per face, so no corner reads skewed and every face rounds alike (ADR 007 addendum: the cover-image corner defects) | — |
 | Pips | exact projected ellipses in `pip` on each visible face's 3×3 lattice — solid, unshaded, in a glass body | — |
