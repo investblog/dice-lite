@@ -16,10 +16,8 @@
 
 	var NS = 'http://www.w3.org/2000/svg';
 	var DEFAULT_BRAND = ['#00abf3', '#d6af3c', '#a91455'];
-	// machine space: origin at the centre of the table, y down (spec: Machine space). The
-	// constants are provisional — looked at on screen at M1/M2 and kept or changed there.
-	// machine space: origin at the centre of the table, y down. The die is a rounded cube,
-	// orthographic-baked (ADR 002 addendum); constants tuned to the reference at M1.
+	// machine space: origin at the centre of the table, y down (spec: Machine space). The die is
+	// a rounded cube, orthographic-baked (ADR 002 addendum); constants tuned to the reference at M1.
 	var H = 100;             // the die's half-edge — the cube is 2H on a side
 	var PITCH = 0.91;        // camera elevation ≈ 52°
 	var RS = 44, RF = 9;     // silhouette rounding / face-quad rounding (projection units)
@@ -186,7 +184,7 @@
 		return { colors: stops, accent: accent, hot: hot, background: bg, halo: halo };
 	}
 
-	// ── colour: a casino table from the brand (ADR 004, provisional until M1) ──
+	// ── colour: a casino table from the brand (ADR 004 and its addenda) ─────
 
 	// Dice claim almost no classic hues — the subject is paper and black — so the brand colours
 	// go where a casino table puts them: the felt takes the first chromatic brand colour, the
@@ -807,7 +805,7 @@
 		var value = Math.round(o.value) >= 1 && Math.round(o.value) <= 6 ? Math.round(o.value) : 1 + Math.floor(S('die:0:value')() * 6);
 		var yaw = (S('die:0:orient')() < 0.5 ? -1 : 1) * (YAW[0] + YAW[1] * S('die:0:orient:yaw')());
 		var d = die(c, value, yaw);
-		return wrap(o, c, [-HX, -HY, 2 * HX, 2 * HY + 42], el('g', ['transform', 'translate(0 0)'], d.shadow + d.content));
+		return wrap(o, c, [-HX, -HY, 2 * HX, 2 * HY + 42], d.shadow + d.content);
 	}
 
 	// Browser convenience: draw a throw into an element and keep it drawn. Options merge

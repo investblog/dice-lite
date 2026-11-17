@@ -71,3 +71,19 @@ stops" instead of merging into the outline — decisive in glass, where bold sea
 overlapping transparent dice. Measured **8528 B gzipped** → budget raised to **8704 B**
 (8528 + 76, the smallest 128-rounded ceiling). Three raises on the ADR 007 day, each
 measured, each a user-visible defect fix.
+
+## Addendum 2026-11-17 (0.3.0) — the budget holds; the output numbers re-measured
+
+0.3.0 (trim, results completing pins, the fifth slot, the contact shadow under glass only)
+measures **8572 B gzipped** — inside 8704, no raise. The output numbers above were taken at M3,
+before the seams and the glass body, and were never re-measured; they had drifted ~27% by
+0.2.0. Measured today over seeds 1–60, gzip level 9:
+
+| Throw | Average raw / gzip | Worst seed |
+|---|---|---|
+| `dice: 3`, paper | 11836 / 2568 B | 13083 / 2737 B |
+| `dice: 3`, glass | 8179 / 1654 B | 9359 / 1812 B |
+| `dice: 5`, paper | 18527 / 3645 B | 19858 / 3867 B |
+
+Removing the hidden contact shadow saved ~294 B raw per paper `dice: 3` throw (zero pixels
+changed by raster subtraction). A hero picture stays a two-and-a-half-kilobyte transfer.

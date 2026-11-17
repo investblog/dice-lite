@@ -4,6 +4,29 @@ All notable changes to `@spintax/dice-lite`. The version is the contract: same (
 options) → identical bytes within a minor version; any change to the output bytes is a minor
 bump.
 
+## 0.3.0 — 2026-11-17
+
+Every change below alters output bytes; unpinned throws of `dice: 2–4` change only by the
+removed contact shadow.
+
+- **Trim:** a neutral colour listed beside chromatic ones (a white, a black, a grey) no
+  longer turns the brass to chrome; chrome is for an all-neutral brand only (ADR 004
+  addendum).
+- **Results complete the pins:** under `lucky7` a die whose pair partner is pinned shows its
+  complement to seven; under `matched` every unpinned die shows the first pinned value. A pin
+  is never overwritten (ADR 003 addendum).
+- **`dice: 5`:** the fifth die moves from the centre, where it stood half inside the pair, to
+  front-right on a landscape felt; every pair of slots is one cube edge apart on the ground
+  (ADR 002 addendum). `dice` still appends.
+- **Shadows:** the contact shadow is drawn only under a glass body — a paper body hid every
+  pixel of it (raster subtraction); ~98 B less per paper die. `die()` loses an empty
+  `translate(0 0)` wrapper (0 pixels changed).
+- **Docs:** `precision` governs the table and the viewBox, the dice are always one decimal;
+  `brand` reads `#hex`/`rgb()` only; output sizes re-measured (ADR 006 addendum).
+- **Gate:** the `pins ignored` mutation was silently skipped since the rail modes; it is
+  re-anchored, three mutations and two checks are added, and the precision test can fail now.
+- Library 8572 B gzipped, budget 8704.
+
 ## 0.2.0 — 2026-11-16
 
 - The seams finish where the corner rounding starts. Both ends are trimmed — at the nose by

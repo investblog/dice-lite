@@ -8,7 +8,7 @@ they show), **`brand`** colours the table.
 The dice are the classic ones — paper bodies, black pips, values one to six — each a rounded
 cube projected at runtime from its own seeded orientation: three visible faces, exact
 projected pips, opposite sides summing to seven by construction. A result such as a lucky
-seven is a named preset that places values; nothing is ever scored. Zero dependencies, ~7 KB
+seven is a named preset that places values; nothing is ever scored. Zero dependencies, ~8.5 KB
 minified and gzipped.
 
 [![npm](https://img.shields.io/npm/v/@spintax/dice-lite.svg)](https://www.npmjs.com/package/@spintax/dice-lite)
