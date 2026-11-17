@@ -223,6 +223,13 @@ shade; any other string (`var(…)`, named colours) is used verbatim for every s
 In a glass body the pips are solid, so a `#hex`/`rgb()` pin sits flat there — there is no
 gradient to mix into.
 
+**The bare table** is two pins, not a mode: `felt: 'transparent', rail: 'transparent'` leaves
+the lattice alone under the dice, the page showing through. Under `theme: 'light'` add
+`style: 'flat'`, or the `line` table draws its rules — a frame. The README's showcase is
+exactly `toss({ seed: 'spintax.net', theme: 'light', style: 'flat', body: 'glass', felt:
+'transparent', rail: 'transparent', size: 960 })`, byte for byte: frosted dice on the bare
+lattice, on a white page.
+
 **The invariant:** *every throw reads as dice on a table whatever the brand — paper dice, black
 pips, a brand-coloured felt; and the brand lands on the table — the first chromatic colour
 felts it. The edge is never a colour by default: a leftover brand colour goes unused unless

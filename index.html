@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>dice-lite — playground</title>
-<meta name="description" content="A throw of dice on a table, drawn by code: seeded dice on a brand-coloured felt, line or flat, as an SVG string.">
+<meta name="description" content="A throw of dice drawn by code: seeded paper or frosted-glass dice on a brand-coloured felt or the bare lattice, as an SVG string.">
 <style>
 	:root { --bg: #111318; --panel: #1a1d24; --text: #e6e6e6; --muted: #9aa0aa; --line: #2b2f38; --accent: #00abf3; }
 	body.light { --bg: #f4f5f8; --panel: #ffffff; --text: #1d2026; --muted: #5d6470; --line: #dfe2e8; --accent: #0084bd; }
@@ -40,7 +40,7 @@
 <main>
 	<aside id="panel">
 		<h1>dice-lite</h1>
-		<label>seed <input type="text" data-k="seed" value="1"></label>
+		<label>seed <input type="text" data-k="seed" value="spintax.net"></label>
 		<div class="row"><button id="prev">‹</button><button id="random">random</button><button id="next">›</button></div>
 		<label>show <select id="mode">
 			<option value="one">one throw</option>
@@ -48,11 +48,12 @@
 			<option value="results">every result</option>
 			<option value="dice">the six faces</option>
 		</select></label>
-		<label>theme <select data-k="theme"><option>dark</option><option>light</option></select></label>
+		<label>theme <select data-k="theme"><option>dark</option><option selected>light</option></select></label>
 		<label class="brand">brand <span class="row"><input type="color" data-b="0" value="#00abf3"><input type="color" data-b="1" value="#d6af3c"><input type="color" data-b="2" value="#a91455"><button id="spintax" title="the spintax triad">↺</button></span></label>
-		<label>style <select data-k="style"><option value="auto">auto — table by theme</option><option>flat</option><option>line</option></select></label>
-		<label>rail <select data-k="rail"><option value="auto">auto — dark surround</option><option value="brand">brand colour</option><option value="felt">none — felt</option></select></label>
-		<label>body <select data-k="body"><option value="paper">paper — the classic</option><option value="glass">glass — frosted</option></select></label>
+		<label>style <select data-k="style"><option value="auto">auto — table by theme</option><option selected>flat</option><option>line</option></select></label>
+		<label>felt <select data-k="felt"><option value="auto">auto — the brand</option><option value="transparent" selected>none — bare lattice</option></select></label>
+		<label>rail <select data-k="rail"><option value="auto">auto — dark surround</option><option value="brand">brand colour</option><option value="felt">painted the felt</option><option value="transparent" selected>none — transparent</option></select></label>
+		<label>body <select data-k="body"><option value="paper">paper — the classic</option><option value="glass" selected>glass — frosted</option></select></label>
 		<label>dice <select data-k="dice"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label>
 		<label>result <select data-k="result"><option value="">— the seed's —</option><option>lucky7</option><option>snake</option><option>boxcars</option><option>matched</option><option>mixed</option></select></label>
 		<label>values <input type="text" data-k="values" placeholder="e.g. 4,,2" title="comma list; empty = the seed/result"></label>
@@ -81,8 +82,9 @@
 		var TRIAD = ['#00abf3', '#d6af3c', '#a91455'];
 		var RESULTS = ['lucky7', 'snake', 'boxcars', 'matched', 'mixed'];
 		var FACES = ['one', 'two', 'three', 'four', 'five', 'six'];
-		// the panel starts on the library's own defaults, so the first render IS Dice.toss()
-		var opts = { seed: '1', theme: 'dark', brand: TRIAD.slice(), style: 'auto', rail: 'auto', body: 'paper', dice: 3,
+		// the panel starts on the README's showcase, so the first render IS the picture there —
+		// glass dice on the bare lattice; 'auto' on every control returns the library's defaults
+		var opts = { seed: 'spintax.net', theme: 'light', brand: TRIAD.slice(), style: 'flat', felt: 'transparent', rail: 'transparent', body: 'glass', dice: 3,
 			result: '', values: '', lattice: 'auto', weight: 1, motion: false, speed: 1 };
 		var stage = document.getElementById('stage'), mode = document.getElementById('mode');
 		var seedInput = document.querySelector('[data-k=seed]'), bytes = document.getElementById('bytes');
@@ -106,6 +108,7 @@
 			var o = Object.assign({}, opts, { seed: seedValue(), dice: Number(opts.dice), weight: Number(opts.weight) }, extra || {});
 			var values = valuesList();
 			if (o.style === 'auto') delete o.style;
+			if (o.felt === 'auto') delete o.felt;
 			if (o.rail === 'auto') delete o.rail;
 			if (o.body === 'paper') delete o.body;
 			if (o.lattice === 'auto') delete o.lattice;
