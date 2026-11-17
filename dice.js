@@ -675,8 +675,10 @@
 
 	// The canonical slots: one nested list — count k takes the first k, so `dice` appends
 	// without moving a die already on the table (values, yaws and placements all hold). The
-	// pair is the constant core; the triangle, the diamond and the quincunx grow from it.
-	var SLOTS = [[-1, 0], [1, 0], [0, -1], [0, 1], [0, 0]];
+	// pair is the constant core; the triangle and the diamond grow from it, and the fifth die
+	// stands front-right — never at the centre, where it stood half inside the pair (ADR 002
+	// addendum: every slot is at least one cube edge from the others on the ground)
+	var SLOTS = [[-1, 0], [1, 0], [0, -1], [0, 1], [1.65, 1.15]];
 	var RESULTS = ['lucky7', 'snake', 'boxcars', 'matched', 'mixed'];
 	var BELT7 = [[1, 6], [2, 5], [3, 4]];
 

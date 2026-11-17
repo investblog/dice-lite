@@ -110,8 +110,10 @@ own placement from `die:i:place` as `(u, v)` around its canonical slot, and its 
 from `die:i:orient`, so the count never moves another die's stream.
 
 The felt carries **canonical slots** per count (2: a pair at the thirds; 3: a triangle; 4: a
-square; 5: a quincunx), and the seed jitters each die inside its slot. Light overlap is
-allowed — dice touch like on a real table: the paint order sorts whole dice by their
+diamond; 5: the diamond plus a die at front-right, `[1.65, 1.15]` slot units, on a landscape
+felt — ADR 002 addendum), and the seed jitters each die inside its slot. Light overlap is
+allowed — dice touch like on a real table, but no two slots sit closer than one cube edge on
+the ground (screen y over sin 52°), so no die stands inside another: the paint order sorts whole dice by their
 screen-ground position (far first), shadows sit in a layer below all dice. Painting never
 learns the layout — the slots are data, the renderer reads placements (cards' rule, slots'
 inheritance).
@@ -295,7 +297,7 @@ Dice.init(el, opts)          // browser → {el, get(), set(opts), destroy()}, o
 | Option | Default | What |
 |---|---|---|
 | `seed` | `1` | a string (a domain name is fine), or a number taken as a 32-bit unsigned integer |
-| `brand` | spintax triad `['#00abf3','#d6af3c','#a91455']` | hex or hex[] |
+| `brand` | spintax triad `['#00abf3','#d6af3c','#a91455']` | `#rgb`/`#rrggbb` or `rgb()`, one or a list — the family's parser; anything else (a named colour, `var()`) reads as white, so a brand is never a CSS keyword. Pins (below) take any CSS colour |
 | `theme` | `'dark'` | `'dark'` \| `'light'` — derived colours only |
 | `style` | `'flat'` | `'line'` \| `'flat'`; the table defaults to `line` under `theme: 'light'` |
 | `weight` | `1` | line weight multiplier |
@@ -303,7 +305,7 @@ Dice.init(el, opts)          // browser → {el, get(), set(opts), destroy()}, o
 | `rail` | `'auto'` | `'auto'` \| `'brand'` \| `'felt'` — the edge mode (above), or any CSS colour string |
 | `body` | `'paper'` | `'paper'` \| `'glass'` — the dice bodies (above) |
 | `size` | — | width; the height follows the viewBox |
-| `precision` | `0` | decimals for coordinates |
+| `precision` | `0` | decimals for the table's coordinates and the viewBox; the dice geometry is always written to one decimal — rounding a die's ellipses and seams any coarser shakes the projection |
 | `salt` | `''` | extra entropy for ids — the same picture twice on one page |
 | `title` | — | `role="img"` + escaped `aria-label`; otherwise `aria-hidden="true"` |
 

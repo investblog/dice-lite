@@ -7,7 +7,7 @@ import Dice from '../dice.js';
 
 // per-die top values of a throw, keyed by DIE INDEX: bodies come in paint order (sorted by
 // depth), so each is matched back to its canonical slot by position
-const SLOT_PX = [[-126, 0], [126, 0], [0, -126], [0, 126], [0, 0]];
+const SLOT_PX = [[-126, 0], [126, 0], [0, -126], [0, 126], [207.9, 144.9]];
 const topValues = (svg) => {
 	const out = [];
 	for (const seg of svg.split('<g transform="translate(').slice(1).filter((s) => s.includes('clip-path='))) {

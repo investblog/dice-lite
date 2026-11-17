@@ -47,3 +47,14 @@ face opposite its top value (a six-entry rest-rotation table), so visible values
 consistent with a real die. True perspective (vanishing points) stays backlog — this is an
 orthographic bake at ~52°.
 
+## Addendum 2026-11-17 — the fifth die leaves the centre
+
+The quincunx put die 4 at the centre slot, 126 units from the pair at its sides — on the
+ground that is 126 between cubes 200 on an edge, so the centre die stood half inside its
+neighbours and paint order only hid it: `dice: 5` read as a heap with pips covered. Four
+candidates that keep slots 0–3 where they are (so `dice` still appends) were rendered over six
+seeds, both themes and glass, each at least one cube edge (≥ 200 ground units, screen y over
+sin 52°) from every neighbour; the user chose **front-right, `[1.65, 1.15]`**. The table grows
+to a landscape felt, which suits a hero background; the felt stays centred, so the far-left
+corner carries bare felt. From 0.3.0 `dice: 5` places die 4 there; `dice: 2–4` are untouched.
+

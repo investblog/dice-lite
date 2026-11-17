@@ -118,7 +118,25 @@ test('the viewBox follows dice: 2–5, default 3, clamped', () => {
 	assert.equal(Dice.toss({ dice: 9 }), Dice.toss({ dice: 5 }), 'above the range clamps to 5');
 	const vb = (opts) => Dice.toss(opts).match(/viewBox="([^"]*)"/u)[1];
 	assert.notEqual(vb({ dice: 2 }), vb({ dice: 3 }), 'a third die grows the felt');
-	assert.equal(vb({ dice: 4 }), vb({ dice: 5 }), 'the quincunx fits the square');
+	const [, , w4, h4] = vb({ dice: 4 }).split(' ').map(Number);
+	const [, , w5, h5] = vb({ dice: 5 }).split(' ').map(Number);
+	assert.ok(w5 > w4 && h5 > h4 && w5 > h5, 'the fifth die widens the felt to a landscape table (ADR 002 addendum)');
+});
+
+test('no die stands inside another: every pair of slots is one cube edge apart on the ground', () => {
+	// die centres read from the shadow layer (one translated group per die, the only groups
+	// that open on an <ellipse>), screen y lifted back to the ground over sin 52°. The slots
+	// sit ≥ 201 apart; the ±6% jitter can close a pair by ~25 at worst
+	const at = (seed, k) => [...Dice.toss({ seed, dice: k }).matchAll(/<g transform="translate\(([^ )]*) ([^ )]*)\)[^"]*"><ellipse/gu)]
+		.map((m) => [+m[1], +m[2] / Math.sin(0.91)]);
+	for (const seed of [1, 2, 'x', 'spintax.net', 77]) {
+		const g = at(seed, 5);
+		assert.equal(g.length, 5);
+		for (let i = 0; i < 5; i++) for (let j = i + 1; j < 5; j++) {
+			const d = Math.hypot(g[i][0] - g[j][0], g[i][1] - g[j][1]);
+			assert.ok(d >= 175, `seed ${seed}: two dice (paint order ${i}, ${j}) ${d.toFixed(0)} apart — the centre slot stood 126 from its neighbours`);
+		}
+	}
 });
 
 test('lattice kinds and none', () => {
