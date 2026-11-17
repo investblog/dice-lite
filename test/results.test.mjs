@@ -83,6 +83,23 @@ test('precedence: values pin > result > seed; null or out-of-range leaves the di
 	assert.equal(new Set(late).size, 3, 'mixed never repeats a late pin either');
 });
 
+test('a result completes the pins: lucky7 answers a pinned partner, matched follows the first pin (ADR 003 addendum)', () => {
+	for (const seed of ['c', 4, 'pin']) {
+		for (let pin = 1; pin <= 6; pin++) {
+			const a = topValues(Dice.toss({ seed, dice: 3, result: 'lucky7', values: [pin] }));
+			assert.deepEqual(a.slice(0, 2), [pin, 7 - pin], `seed ${seed}: a pinned die 0 of ${pin} gets ${7 - pin} beside it`);
+			const b = topValues(Dice.toss({ seed, dice: 3, result: 'lucky7', values: [null, pin] }));
+			assert.deepEqual(b.slice(0, 2), [7 - pin, pin], `seed ${seed}: a pinned die 1 of ${pin} gets ${7 - pin} beside it`);
+		}
+		const m = topValues(Dice.toss({ seed, dice: 4, result: 'matched', values: [null, 4] }));
+		assert.deepEqual(m, [4, 4, 4, 4], `seed ${seed}: matched follows the pin`);
+		const two = topValues(Dice.toss({ seed, dice: 3, result: 'matched', values: [null, 2, 5] }));
+		assert.deepEqual(two, [2, 2, 5], `seed ${seed}: two pins disagree — pins win, the rest follow the first`);
+		const both = topValues(Dice.toss({ seed, dice: 2, result: 'lucky7', values: [2, 2] }));
+		assert.deepEqual(both, [2, 2], `seed ${seed}: both dice pinned — pins win, nothing is overwritten`);
+	}
+});
+
 test('choosing a result moves nothing it does not name: positions, yaws and untouched values', () => {
 	const at = (svg) => [...svg.matchAll(/<g transform="translate\(([^ )]*) ([^ )]*)\)/g)].map((m) => `${m[1]},${m[2]}`);
 	const sils = (svg) => [...svg.matchAll(/<path id="[^"]*" d="([^"]*)"\/>/g)].map((m) => m[1]);

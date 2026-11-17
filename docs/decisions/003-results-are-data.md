@@ -32,3 +32,14 @@ only, off by default (ADR 005 here).
   library must not grow an evaluator to make its own tests convenient.
 - A totals row, odds, betting or a reroll API is out of scope for every version until an ADR
   says otherwise.
+
+## Addendum (2026-11-17) — a result completes the pins
+
+Through 0.2.0 `mixed` honoured the pinned values (it never repeats one) while `lucky7` and
+`matched` ignored them: `values: [3]` with `lucky7` could show 3 beside a 6, a "lucky seven"
+that was no seven. From 0.3.0 every result **constructs around the pins**: `lucky7` gives a
+die of the pair whose partner is pinned the partner's complement to seven; `matched` takes the
+first pinned value as the value every unpinned die shows. A pin is still never overwritten —
+`values` > `result` > seed stands — so two pins that cannot both satisfy a result win, and the
+result shapes only the dice left to it. This is construction, not evaluation: the name still
+places values and nothing is scored. Unpinned throws are byte-identical to 0.2.0.

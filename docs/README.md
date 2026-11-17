@@ -154,9 +154,12 @@ only — name → values. Each result is correct **by construction**.
 | `mixed` | no two dice agree; each draws from the values not yet used, appending like the dice do |
 
 `values` pins exact values per die (an array, die 0 first; `null` or anything outside 1–6
-leaves that die to the seed/result). Precedence is `values` > `result` > seed. Each result
-reads its own stream (`result:lucky7`, `result:matched`, `result:mixed:i`), so choosing one
-moves nothing else.
+leaves that die to the seed/result). Precedence is `values` > `result` > seed, and a result
+**completes the pins** (ADR 003 addendum): under `lucky7` a die whose pair partner is pinned
+shows the partner's complement to seven; under `matched` every unpinned die shows the first
+pinned value; `mixed` never repeats a pin. A pin is never overwritten, so pins that contradict
+a result win and the result shapes only the dice left to it. Each result reads its own stream
+(`result:lucky7`, `result:matched`, `result:mixed:i`), so choosing one moves nothing else.
 
 > **The seed never changes what a six looks like. It may change whether the six is showing.**
 

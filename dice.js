@@ -679,11 +679,14 @@
 	var BELT7 = [[1, 6], [2, 5], [3, 4]];
 
 	// Results are data (ADR 003): a name places values, nothing is scored. Each result reads
-	// its own streams; dice it does not name keep the seed's values.
-	function resultValue(r, i, S, used) {
+	// its own streams; dice it does not name keep the seed's values. `vals` holds the pins and
+	// the values placed so far: a result completes them, never overwrites them (ADR 003 addendum)
+	function resultValue(r, i, S, used, vals) {
 		if (r === 'snake') return i < 2 ? 1 : 0;
 		if (r === 'boxcars') return i < 2 ? 6 : 0;
 		if (r === 'lucky7' && i < 2) {
+			// a placed partner — pinned, or drawn just before — is answered by its complement
+			if (vals[1 - i]) return 7 - vals[1 - i];
 			// one pair draw for the throw, one swap draw — both dice name it
 			if (!used.l7) {
 				var p = BELT7[Math.floor(S('result:lucky7')() * 3)];
@@ -691,7 +694,11 @@
 			}
 			return used.l7[i];
 		}
-		if (r === 'matched') return 1 + Math.floor(S('result:matched')() * 6);
+		if (r === 'matched') {
+			// the first placed value — a pin anywhere, or the first die's draw — is the match
+			for (var m = 0; m < vals.length; m++) if (vals[m]) return vals[m];
+			return 1 + Math.floor(S('result:matched')() * 6);
+		}
 		if (r === 'mixed') {
 			var avail = [];
 			for (var v = 1; v <= 6; v++) if (!used[v]) avail.push(v);
@@ -732,7 +739,7 @@
 		}
 		for (i = 0; i < k; i++) {
 			if (values[i] != null) continue;
-			if (res) { var rv = resultValue(res, i, S, used); values[i] = rv || seeded(i); }
+			if (res) { var rv = resultValue(res, i, S, used, values); values[i] = rv || seeded(i); }
 			else values[i] = seeded(i);
 		}
 		// the roll (ADR 005 + addendum): a settle, off by default. Names from a stream of their
