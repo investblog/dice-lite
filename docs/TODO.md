@@ -22,7 +22,8 @@ along the way. The milestones are the v0.1 plan; this list is its public index.
   Codex review: 17 findings across two rounds, all fixed (double-yaw pips, the clipPath/use
   structure, add3(0), depth scale, the pins contract, seam shadows, stronger tests).
 - [x] M3 — the five results with their longhand checker, the settle (ADR 005 addendum),
-  `init()`, `dice.d.ts`, output size measured, the budget frozen at 7424 (ADR 006 addendum).
+  `init()`, `dice.d.ts`, output size measured, the budget frozen at 7424 at M3 and raised to
+  8704 by the ADR 007 addenda (ADR 006).
 - [ ] M4 — `test/verify.html` + `--mutate` in three engines × two motion modes; `index.html`;
   CI/release/bootstrap-publish workflows; README, CHANGELOG, RELEASING.
 - [ ] M5 — integration in a static site, then `0.1.0` on the user's go: repo, bootstrap
