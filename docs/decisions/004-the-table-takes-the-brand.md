@@ -56,3 +56,12 @@ actually wears. Decision:
   colour goes unused; the brand lands on the felt and the brass, the edge stays dark.
 - The `line` table is untouched — felt and rail draw as rules in `outline` either way, so the
   mode changes only the flat table's fill.
+
+## Addendum (2026-11-17) — chrome means an all-neutral brand
+
+"Chrome for a grey brand" means a brand with **no chromatic colour** — not a brand that lists
+one neutral among chromatic ones. Through 0.2.0 any neutral entry (a white, a black, a grey —
+which nearly every real brand palette carries) dropped the trim to chroma 0, so the triad plus
+`#ffffff` lost its brass with the gold present. From 0.3.0 neutral entries are ignored by the
+trim: a gold-hue colour tones the brass at half its chroma; a chromatic brand without one gets
+the default brass (chroma 25 at hue 85); only an all-neutral brand is chrome. Pinned by test.

@@ -217,7 +217,9 @@
 		}
 		if (goldD > 30) goldI = -1; // the window is ±30° around the gold centre
 		var gold = goldI >= 0 ? chrom[goldI].lch : null;
-		var trim = lch2rgb(66, grey || !chrom.length ? 0 : gold ? gold[1] * 0.5 : 25, gold ? gold[2] : 85);
+		// chrome only for an all-neutral brand: a neutral listed beside chromatic colours is
+		// ignored here, never a reason to drop the brass (ADR 004 addendum)
+		var trim = lch2rgb(66, !chrom.length ? 0 : gold ? gold[1] * 0.5 : 25, gold ? gold[2] : 85);
 		// the dice are the classic: paper in both themes, near-black pips and shadows (cards'
 		// stock/spade/ink formulas, the paper as their contrast reference)
 		var die = lch2rgb(96.5, Math.min(bC * 0.08, 4), bH);

@@ -100,6 +100,21 @@ test('a grey brand gets chrome trim; under rail: brand a lone colour falls back 
 	}
 });
 
+test('a neutral colour in a chromatic brand never turns the brass to chrome (ADR 004 addendum)', () => {
+	const triad = ['#00abf3', '#d6af3c', '#a91455'];
+	const chromatic = (hex) => {
+		const ch = hex.slice(1).match(/../gu).map((h) => parseInt(h, 16));
+		return Math.max(...ch) - Math.min(...ch) > 8;
+	};
+	for (const neutral of ['#ffffff', '#000000', '#8a8a8a']) {
+		assert.equal(Dice.palette([...triad, neutral]).trim, Dice.palette(triad).trim,
+			`a ${neutral} beside the gold leaves the brass alone`);
+	}
+	assert.ok(chromatic(Dice.palette(['#00abf3', '#d6af3c', '#111111']).trim), 'blue + gold + black is still brass');
+	assert.ok(chromatic(Dice.palette(['#2f9e44', '#ffffff']).trim), 'no gold, one neutral: the default brass, not chrome');
+	assert.ok(!chromatic(Dice.palette(['#8a8a8a', '#ffffff']).trim), 'an all-neutral brand is still chrome');
+});
+
 test('the dice are the classic in both themes: paper, near-black pips, an ink between them', () => {
 	for (const brand of BRANDS) {
 		const dark = Dice.palette(brand, { theme: 'dark' }), light = Dice.palette(brand, { theme: 'light' });

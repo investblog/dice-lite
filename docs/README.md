@@ -192,7 +192,7 @@ casino table puts them:
 |---|---|---|
 | `felt` | the first chromatic brand colour (chroma ≥ 12); else the grey one; else the spintax blue | the table surface |
 | `rail` | a **mode**, not a colour: `'auto'` (default) the pip family's near-black — the table's dark surround; `'brand'` the cascade below; `'felt'` paints the rail the felt — no visible edge. Any CSS colour pins it | the table's padded edge |
-| `trim` | metal, as in slots: brass from a gold-hue brand colour at lower chroma, chrome for a grey brand | the lattice's fine lines, the table line |
+| `trim` | metal, as in slots: brass from a gold-hue brand colour at lower chroma, the default brass when no colour sits in the gold window, chrome only for an all-neutral brand — a neutral listed beside chromatic colours never turns the brass to chrome (ADR 004 addendum) | the lattice's fine lines, the table line |
 | `die` | the family's paper formula, lch(96.5, min(C·0.08, 4), H) — **both themes** | the die bodies |
 | `pip` | near-black, cards' `spade` formula | the pips |
 | `ink` | near-black at the shadow α | the shadows |
