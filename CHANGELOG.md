@@ -4,6 +4,17 @@ All notable changes to `@spintax/dice-lite`. The version is the contract: same (
 options) → identical bytes within a minor version; any change to the output bytes is a minor
 bump.
 
+## 0.4.0 — 2026-11-17
+
+- **Every face corner is rounded.** Where a seam meets the silhouette it now stops 18 units
+  short of the crossing and fillets into the outline — a Q-arc tangent to both, on each side
+  where they meet at 70° or more; on the acute side the seam flows in alone. With the nose
+  arcs, no face of a die keeps a square corner (ADR 007 addendum). Most visible in `glass`;
+  quiet in `paper`. The one-stroke pull-back at the seam end is retired.
+- The fillets ride their seam's `<path>` as subpaths: one paint, no doubled ink where a
+  fillet leaves its seam. A `dice: 3` paper throw grows 3.6% raw (12257 B average).
+- Library 8784 B gzipped, budget raised to 8832 (ADR 006 addendum).
+
 ## 0.3.0 — 2026-11-17
 
 Every change below alters output bytes; unpinned throws of `dice: 2–4` change only by the

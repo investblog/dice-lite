@@ -114,14 +114,15 @@ test('pins reach the dice: hex pins mix into the gradients, other strings pass v
 });
 
 test('the projection is pinned: golden snapshots of a throw and an icon', () => {
-	assert.equal(sha(Dice.toss({ seed: 'golden' })), '0ce1bb9a8bb0c74be303319de5a054f45f0363eb54c60f98ece1ae50b1f3dac7');
-	assert.equal(sha(Dice.die({ seed: 'golden', value: 5 })), '764ab63114a92a3e6b59f31ca43e3b42d79ed72896f3fced12afc4ee12d22791');
+	assert.equal(sha(Dice.toss({ seed: 'golden' })), '0757504ed87a8073a166254dcba960f3bf1f2a214daf7b8db990e71d9e31bc89');
+	assert.equal(sha(Dice.die({ seed: 'golden', value: 5 })), '7bc0188f4172872196a6d81a017765b932eaa48ec853ad93e1406ef0cd6ac7df');
 });
 
 test('the paper body draws cut seams: open segments in quiet ink, three per die, joined at the nose by corner arcs', () => {
 	const svg = Dice.toss({ seed: 1 });
-	const seams = svg.match(/<path clip-path="url\(#[a-z][a-z0-9]{5}\)" d="M-?[\d.]+ -?[\d.]+L-?[\d.]+ -?[\d.]+" fill="none" stroke="#[0-9a-f]+" stroke-opacity=".15" stroke-width="[\d.]+" stroke-linecap="round"\/>/gu);
-	assert.equal(seams && seams.length, 9, 'three dice × three shared edges');
+	// a seam and its silhouette fillets are one path: the segment, then one subpath per fillet
+	const seams = svg.match(/<path clip-path="url\(#[a-z][a-z0-9]{5}\)" d="M-?[\d.]+ -?[\d.]+L-?[\d.]+ -?[\d.]+(?:M-?[\d.]+ -?[\d.]+Q-?[\d.]+ -?[\d.]+ -?[\d.]+ -?[\d.]+){1,2}" fill="none" stroke="#[0-9a-f]+" stroke-opacity=".15" stroke-width="[\d.]+" stroke-linecap="round"\/>/gu);
+	assert.equal(seams && seams.length, 9, 'three dice × three shared edges, each with its fillets');
 	const arcs = svg.match(/d="M-?[\d.]+ -?[\d.]+Q-?[\d.]+ -?[\d.]+ -?[\d.]+ -?[\d.]+" fill="none" stroke="#[0-9a-f]+" stroke-opacity=".15"/gu);
 	assert.equal(arcs && arcs.length, 9, 'the nose corners close through small Q-arcs — three dice × one per face');
 	const one = Dice.die({ seed: 1 });
@@ -129,11 +130,64 @@ test('the paper body draws cut seams: open segments in quiet ink, three per die,
 	assert.equal(Dice.toss({ seed: 7, body: 'paper' }), Dice.toss({ seed: 7 }), "'paper' is the default, byte-identical");
 });
 
+test('the far seam ends fillet into the outline: from the seam, onto the silhouette, never on the acute side (ADR 007 addendum)', () => {
+	// the silhouette, sampled densely from its own d (M, L, Q, Z — rquad2's grammar)
+	const outline = (svg) => {
+		const d = svg.match(/<path id="[a-z][a-z0-9]{5}" d="([^"]*)"\/>/u)[1];
+		const tok = d.match(/[MLQZ]|-?[\d.]+/gu), pts = [];
+		let p = null;
+		for (let i = 0; i < tok.length;) {
+			const op = tok[i++];
+			if (op === 'Z') continue;
+			if (op === 'Q') {
+				const q = [+tok[i++], +tok[i++]], e = [+tok[i++], +tok[i++]];
+				for (let k = 1; k <= 400; k++) {
+					const t = k / 400;
+					pts.push([(1 - t) ** 2 * p[0] + 2 * t * (1 - t) * q[0] + t * t * e[0], (1 - t) ** 2 * p[1] + 2 * t * (1 - t) * q[1] + t * t * e[1]]);
+				}
+				p = e;
+			} else {
+				const e = [+tok[i++], +tok[i++]];
+				if (op === 'L') for (let k = 1; k <= 400; k++) pts.push([p[0] + (e[0] - p[0]) * k / 400, p[1] + (e[1] - p[1]) * k / 400]);
+				else pts.push(e);
+				p = e;
+			}
+		}
+		return pts;
+	};
+	const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+	for (const body of ['paper', 'glass']) {
+		for (let seed = 1; seed <= 40; seed++) {
+			const svg = Dice.die({ seed, body });
+			const sil = outline(svg);
+			// a seam path is its segment "M far L stop", then one "M stop Q X T" per fillet
+			const seamPaths = [...svg.matchAll(/d="(M[^"Q]*L[^"]*)" fill="none"[^>]*stroke-linecap/gu)].map((m) => m[1].match(/-?[\d.]+/gu).map(Number));
+			assert.equal(seamPaths.length, 3, `${body} ${seed}: three seams`);
+			const fillets = [];
+			for (const p of seamPaths) {
+				assert.equal((p.length - 4) % 6, 0, `${body} ${seed}: a seam path is a segment plus whole fillets`);
+				for (let k = 4; k < p.length; k += 6) fillets.push({ far: [p[0], p[1]], end: [p[2], p[3]], f: p.slice(k, k + 6) });
+			}
+			assert.deepEqual(seamPaths.map((p) => (p.length - 4) / 6).sort(), [1, 1, 2], `${body} ${seed}: one fillet at two silhouette ends, two at the third`);
+			for (const { far, end, f: [sx, sy, xx, xy, tx, ty] } of fillets) {
+				const S = [sx, sy], X = [xx, xy], T = [tx, ty];
+				assert.ok(dist(S, end) < 0.15, `${body} ${seed}: a fillet starts where its seam ends`);
+				const cross = (S[0] - far[0]) * (X[1] - S[1]) - (S[1] - far[1]) * (X[0] - S[0]);
+				assert.ok(Math.abs(cross) / dist(S, far) < 0.3 && dist(far, X) > dist(far, S),
+					`${body} ${seed}: the control continues the seam — tangent at the stop`);
+				assert.ok(Math.min(...sil.map((p) => dist(p, T))) < 0.6, `${body} ${seed}: the fillet lands on the silhouette`);
+				const ang = Math.acos(((S[0] - X[0]) * (T[0] - X[0]) + (S[1] - X[1]) * (T[1] - X[1])) / (dist(S, X) * dist(T, X))) * 180 / Math.PI;
+				assert.ok(ang >= 70, `${body} ${seed}: no fillet on the acute side (${ang.toFixed(0)}°)`);
+			}
+		}
+	}
+});
+
 test('the glass body: frost fill, outline strokes, solid pips, and no dice gradients at all', () => {
 	const svg = Dice.toss({ seed: 1, body: 'glass' });
 	assert.doesNotMatch(svg, /[lr]inearGradient|adialGradient/u, 'glass draws no gradients — unused defs are not emitted');
 	assert.equal((svg.match(/fill-opacity=".55"/gu) || []).length, 3, 'the three silhouettes carry the frost');
-	assert.equal((svg.match(/stroke-width="2.2"/gu) || []).length, 18, 'nine seams + nine nose arcs at the seam weight');
+	assert.equal((svg.match(/stroke-width="2.2"/gu) || []).length, 18, 'nine seams (fillets ride their paths) + nine nose arcs at the seam weight');
 	assert.equal((svg.match(/stroke-width="2.6"/gu) || []).length, 3, 'the three silhouettes at the outline weight');
 	assert.ok((svg.match(new RegExp('fill="' + Dice.palette().pip + '"', 'gu')) || []).length > 1,
 		'solid pips — the rail alone would be exactly one fill of the pip colour');

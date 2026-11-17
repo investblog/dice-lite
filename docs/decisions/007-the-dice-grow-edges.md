@@ -94,3 +94,36 @@ ends exactly on the curve — geometry right, reading wrong. Two corrections:
 - each seam end is pulled one stroke-width back inside the boundary. A hairline gap reads
   as "the edge meets the boundary and stops" — the technical-drawing convention — and keeps
   overlapping glass dice legible.
+
+## Addendum 2026-11-17 (0.4.0) — the far corners round like the nose
+
+The user's next look at the glass icon put arrows on the same three silhouette junctions:
+with the nose rounded, they were the last place a face kept sharp corners — a seam meeting
+the outline at a straight angle, a gap or no gap. On a rounded cube every face is a rounded
+square; these corners read square. Two prototypes, outside the library, decided the shape:
+
+- **Forking at the hull vertex fails.** Two arcs from the seam into the outline's own tangent
+  points, control at the hull corner, copy the nose literally — but the hull corner lies
+  outside the drawn outline, so at the bottom vertex the corner patch shrank to a pinch, and
+  where the seam meets the outline at a glancing angle the arc curled into a loop.
+- **Fillets at the true crossing hold.** The seam stops 18 units (projection) short of X,
+  its crossing with the outline Q-curve (the root chosen as above); a Q-fillet with control
+  X runs from that stop to the outline point ≈ 18 units of arc length from X on each side —
+  tangent to the seam at one end, to the outline at the other. On the **acute side** (seam
+  to outline under 70°) the fillet curls into an "eye" at stroke width, so it is not drawn:
+  the seam flows into the outline on its obtuse side alone. Measured over 200 seeds, the
+  angles cluster at 43–59° and 80–115°, nothing between — 70° splits them with room; the
+  bottom vertex and one side vertex take one fillet, the other side vertex two.
+
+The fillets meet the outline tangentially, so the one-stroke pull-back above is retired:
+a tangent join cannot read as the pointed junction it guarded against. Radii 10/18/26 were
+rendered at the vertex scale; 10 reads as a speck, 26 widens the eye, 18 stands. Paper's
+seams are quiet ink, so the change there is subtle; glass, where the user saw it, gains the
+most.
+
+Each fillet rides its seam's path as a subpath — `M far L stop M stop Q X T` — not a path of
+its own: the same paint, so the same picture, without repeating the stroke attributes four
+times a die (+17% raw output as separate paths, +3.6% as subpaths, ADR 006), and the quiet
+paper ink no longer doubles where a fillet leaves its seam. Pinned by a longhand test (each
+fillet starts at its seam's stop, its control continues the seam, its end lies on the
+silhouette, its angle is ≥ 70°), seen red under four mutations.

@@ -22,6 +22,7 @@
 	var PITCH = 0.91;        // camera elevation ≈ 52°
 	var RS = 44, RF = 9;     // silhouette rounding / face-quad rounding (projection units)
 	var RPIP = 19;           // pip radius in 3D units — drawn as the exact projected ellipse
+	var RFIL = 18;           // a seam's fillet into the outline (projection units, ADR 007 addendum)
 	var HG = H + 2;          // faces overlap 2 units at the seams, clipped by the silhouette
 	var YAW = [0.36, 0.08];  // yaw = sign × (0.36 + 0.08·u) — the readable range (Codex's math)
 	var SQRT3 = Math.sqrt(3), A_REG = (2 - Math.SQRT2) / 2; // 0.29289… exact regular octagon
@@ -567,6 +568,16 @@
 			if (hits === 3) nose = SP[0][e0];
 		}
 		var hp = hull2(corners), stops = [];
+		// the seam marks share one paint: a seam and its silhouette fillets ride ONE path (so the
+		// quiet paper ink never doubles where a fillet leaves its seam), each nose arc its own
+		var stroke = function (dd) {
+			return el('path', ['clip-path', glass ? null : 'url(#' + cid + ')', 'd', dd, 'fill', 'none',
+				'stroke', glass ? c.col('outline') : c.col('ink'), 'stroke-opacity', glass ? null : '.15',
+				'stroke-width', n((glass ? 2.2 : 1.4) * c.w, 1), 'stroke-linecap', 'round']);
+		};
+		var arc = function (a, q, b) {
+			return 'M' + n(a[0], 1) + ' ' + n(a[1], 1) + 'Q' + n(q[0], 1) + ' ' + n(q[1], 1) + ' ' + n(b[0], 1) + ' ' + n(b[1], 1);
+		};
 		for (i = 0; i < SP.length; i++) {
 			var W = SP[i][0], V = SP[i][1];
 			if (nose) {
@@ -585,7 +596,7 @@
 				stops.push(W);
 			}
 			// the silhouette end: meet the rounded-corner Q-curve at V (rquad2's construction)
-			var vi = -1;
+			var vi = -1, fil = '';
 			for (var h0 = 0; h0 < hp.length; h0++) {
 				var hx = hp[h0][0] - V[0], hy = hp[h0][1] - V[1];
 				if (hx * hx + hy * hy < 0.01) { vi = h0; break; }
@@ -616,39 +627,37 @@
 					// the crossing must lie ON the seam segment (s in 0..1 measured from W),
 					// and the exit nearest the corner wins — the other root sits on the line's
 					// extension, outside the silhouette
-					var best = null;
+					var best = null, bt = 0;
 					for (var ci = 0; ci < cand.length; ci++) {
 						var t2 = cand[ci];
 						var bx = c1 + t2 * c2 + t2 * t2 * c3 - W[0], by = c4 + t2 * c5 + t2 * t2 * c6 - W[1];
 						var ss = (bx * Dx + by * Dy) / d2n;
-						if (ss > 0 && ss < 1 && (best == null || ss > best)) best = ss;
+						if (ss > 0 && ss < 1 && (best == null || ss > best)) { best = ss; bt = t2; }
 					}
-					// pull the end one stroke-width back inside the silhouette: a hairline gap
-					// reads as "the edge meets the boundary" and never merges into the outline
-					// — which matters most in glass, where bold seams cross overlapping dice
+					// fillet into the outline at the true crossing X (ADR 007 addendum, 0.4.0): the
+					// seam stops RFIL short of X, and a Q-arc with control X runs to the outline
+					// ≈ RFIL of arc from X on each side — tangent to the seam and to the outline,
+					// so no face keeps a square corner. On the acute side (under 70°) the arc would
+					// curl into an eye at stroke width: the seam flows in on its obtuse side alone
 					if (best != null) {
-						var gs = (glass ? 2.2 : 1.4) * c.w / Math.sqrt(d2n);
-						V = [W[0] + Dx * (best - gs), W[1] + Dy * (best - gs)];
+						var dl = Math.sqrt(d2n), rf = Math.min(RFIL, best * dl / 3), X = [W[0] + Dx * best, W[1] + Dy * best];
+						var gx = c2 + 2 * bt * c3, gy = c5 + 2 * bt * c6, dq = rf / (Math.sqrt(gx * gx + gy * gy) || 1);
+						V = [X[0] - Dx / dl * rf, X[1] - Dy / dl * rf];
+						for (var fk = -1; fk <= 1; fk += 2) {
+							var tt = Math.max(0, Math.min(1, bt + fk * dq)), T = [c1 + tt * c2 + tt * tt * c3, c4 + tt * c5 + tt * tt * c6];
+							var tx = T[0] - X[0], ty = T[1] - X[1];
+							// cos 70° = 0.342, the angle taken between X→stop (that is −D) and X→T
+							if (tx * Dx + ty * Dy >= -0.342 * dl * Math.sqrt(tx * tx + ty * ty)) fil += arc(V, X, T);
+						}
 					}
 				}
 			}
-			seams += el('path', ['clip-path', glass ? null : 'url(#' + cid + ')',
-				'd', 'M' + n(W[0], 1) + ' ' + n(W[1], 1) + 'L' + n(V[0], 1) + ' ' + n(V[1], 1), 'fill', 'none',
-				'stroke', glass ? c.col('outline') : c.col('ink'),
-				'stroke-opacity', glass ? null : '.15',
-				'stroke-width', n((glass ? 2.2 : 1.4) * c.w, 1), 'stroke-linecap', 'round']);
+			seams += stroke('M' + n(W[0], 1) + ' ' + n(W[1], 1) + 'L' + n(V[0], 1) + ' ' + n(V[1], 1) + fil);
 		}
 		// the nose corners: bare stops read as a ragged triple point, each face's corner still
 		// skewed — so every pair of stops joins through a small Q-arc, control at the nose
 		// (rquad2's own corner construction: tangent to both seams at any stop distance)
-		if (nose && stops.length === 3) for (i = 0; i < 3; i++) for (var j3 = i + 1; j3 < 3; j3++) {
-			seams += el('path', ['clip-path', glass ? null : 'url(#' + cid + ')',
-				'd', 'M' + n(stops[i][0], 1) + ' ' + n(stops[i][1], 1) + 'Q' + n(nose[0], 1) + ' ' + n(nose[1], 1) +
-				' ' + n(stops[j3][0], 1) + ' ' + n(stops[j3][1], 1), 'fill', 'none',
-				'stroke', glass ? c.col('outline') : c.col('ink'),
-				'stroke-opacity', glass ? null : '.15',
-				'stroke-width', n((glass ? 2.2 : 1.4) * c.w, 1), 'stroke-linecap', 'round']);
-		}
+		if (nose && stops.length === 3) for (i = 0; i < 3; i++) for (var j3 = i + 1; j3 < 3; j3++) seams += stroke(arc(stops[i], nose, stops[j3]));
 		// the silhouette lives in defs with NO fill of its own: a fill set on the source would
 		// beat the uses' paints (and would render if the path sat in the body) — so the uses
 		// own every paint, and its d is computed from the yaw, keeping zero-d honest

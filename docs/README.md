@@ -10,12 +10,13 @@ project: dice-lite
 Docs for developers and agents. `index.html` will be the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-11-17): v0.3.0.** The library is feature-complete and on npm: the projected
-cube on the brand table (ADR 002 addendum), the five results completing any pins (ADR 003 and
-addendum), the settle (ADR 005 addendum), `init()`, types — 44 tests and the 15-check browser
-gate green, every one of its 16 mutations seen red; the library 8572 B gzipped of the budget
-**8704** (ADR 006), a `dice: 3` paper throw averaging 11836 B raw / 2568 B gzip over 60 seeds
-(ADR 006, 0.3.0 addendum). Every number below is either a family measurement carried over or a *provisional*
+**Status (2026-11-17): v0.4.0.** The library is feature-complete and on npm: the projected
+cube on the brand table (ADR 002 addendum), every face corner rounded — nose arcs and
+silhouette fillets (ADR 007 addenda), the five results completing any pins (ADR 003 and
+addendum), the settle (ADR 005 addendum), `init()`, types — 45 tests and the 15-check browser
+gate green, every one of its 16 mutations seen red; the library 8784 B gzipped of the budget
+**8832** (ADR 006), a `dice: 3` paper throw averaging 12257 B raw / 2714 B gzip over 60 seeds
+(ADR 006, 0.4.0 addendum). Every number below is either a family measurement carried over or a *provisional*
 forecast naming the milestone that replaces it with a measurement; this line is kept true at
 every milestone.
 
@@ -81,7 +82,7 @@ it. The viewBox follows `dice`: the felt is sized to the canonical slots plus ma
 | Rail | a padded ring around the felt in `rail` | width, corner |
 | Shadow | a broad `<ellipse>` per die (plus a contact one under glass), a seam pool where dice touch | — |
 | Die | a rounded cube: silhouette = rounded hull of the 8 projected corners; faces = projected quads under a shared airbrush | yaw, value |
-| Seams | the three interior edges of the visible faces — open segments between the **true** corners (the drawn quads use HG = H + 2 and overlap on purpose, so they cannot serve); both ends stop where the corner rounding starts — at the silhouette the seam meets rquad2's rounded-corner Q-curve, at the nose a same-radius tangent trim — and every pair of nose stops joins through a small Q-arc, one per face, so no corner reads skewed and every face rounds alike (ADR 007 addendum: the cover-image corner defects) | — |
+| Seams | the three interior edges of the visible faces — open segments between the **true** corners (the drawn quads use HG = H + 2 and overlap on purpose, so they cannot serve); both ends stop where the corner rounding starts — at the nose a same-radius tangent trim, and every pair of nose stops joins through a small Q-arc, one per face; at the silhouette the seam stops 18 units short of its crossing with rquad2's rounded-corner Q-curve and fillets into the outline — a Q-arc tangent to both, on each side where seam and outline meet at 70° or more (the acute side lets the seam flow in alone). No corner of any face reads square (ADR 007 addenda) | — |
 | Pips | exact projected ellipses in `pip` on each visible face's 3×3 lattice — solid, unshaded, in a glass body | — |
 
 **The body.** `body: 'paper'` (default) is the classic dice: paper gradients, pips in shaded
@@ -257,14 +258,14 @@ needed** — there is no fixed `d` to count (ADR 002); a pinned test asserts the
 ## Performance and size
 
 - Library: budget in `package.json` `config.sizeBudget`, measured by `npm run size` (terser in
-  process + gzip level 9, never the `gzip` CLI). **8704 B (ADR 006 addenda)**: frozen at 7424
+  process + gzip level 9, never the `gzip` CLI). **8832 B (ADR 006 addenda)**: frozen at 7424
   when M3 measured 7227 B gzipped; the ADR 007 day (seams, glass, the corner-trim corrections
   and their review fixes) raised it three times with measurements — 7596 → 8359 → 8528,
-  each ceiling the smallest 128-rounded number that covers the measured size. 0.3.0
-  measures **8572 B gzipped**, inside it.
-- Output, **re-measured at 0.3.0 over seeds 1–60** (ADR 006 addendum; the M3 numbers predate
-  the seams and the glass): `dice: 3` paper averages **11836 B raw / 2568 B gzip**, worst
-  seed 13083 / 2737; glass 8179 / 1654; `dice: 5` paper 18527 / 3645. `line` changes the
+  each ceiling the smallest 128-rounded number that covers the measured size; 0.3.0 measured
+  8572 B inside it, and 0.4.0's silhouette fillets raised it once more — **8784 B gzipped**.
+- Output, **re-measured at 0.4.0 over seeds 1–60** (ADR 006 addenda; the M3 numbers predate
+  the seams and the glass): `dice: 3` paper averages **12257 B raw / 2714 B gzip**, worst
+  seed 13514 / 2883; glass 8600 / 1806; `dice: 5` paper 19229 / 3888. `line` changes the
   felt and rail treatment only; the dice are identical in both styles.
 
 ## Promotion

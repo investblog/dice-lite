@@ -87,3 +87,18 @@ before the seams and the glass body, and were never re-measured; they had drifte
 
 Removing the hidden contact shadow saved ~294 B raw per paper `dice: 3` throw (zero pixels
 changed by raster subtraction). A hero picture stays a two-and-a-half-kilobyte transfer.
+
+## Addendum 2026-11-17 (0.4.0, ADR 007 addendum) — raised to 8832 B
+
+The silhouette fillets (ADR 007's 0.4.0 addendum) add the crossing-tangent arithmetic and the
+acute-side rule: measured **8784 B gzipped**, 80 over 8704 → budget raised to **8832 B**
+(the smallest 128-rounded ceiling). The seam strokes were folded into one helper on the way,
+which paid for part of it. No golfing was tried with `Math.hypot`: the spec does not require
+it to be correctly rounded, so engines may disagree in the last bit — and byte-identical
+output across engines is the contract. Raise number four, each a user-visible fix.
+
+The output was measured twice. Fillets as their own `<path>`s cost +17% raw on a paper
+`dice: 3` (13805 B); riding the seam's path as subpaths — one paint, so it is the same
+picture, and the quiet paper ink no longer doubles where a fillet leaves its seam — brings it
+to **12257 / 2714 B** (+3.6% raw, +5.7% gzip over 0.3.0; worst seed 13514 / 2883). Glass
+`dice: 3` 8600 / 1806, paper `dice: 5` 19229 / 3888.
