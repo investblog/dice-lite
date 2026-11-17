@@ -104,3 +104,10 @@ to 12257 / 2714 B. Rounding the depth scale (it leaked as `0.9500000000000001`) 
 saved 56 B a throw and cost the library 2 B: **8786 B gzipped**; a paper `dice: 3` averages
 **12201 / 2711 B** (+3.1% raw, +5.6% gzip over 0.3.0; worst seed 13458 / 2881), glass
 8544 / 1802, paper `dice: 5` 19173 / 3883.
+
+## Addendum 2026-11-17 (0.5.0, ADR 002 addendum) — inside 8832 B
+
+The ground lattice (one `scale(1 0.79)` leading the pattern's transform, computed from the
+camera's pitch) measured **8801 B gzipped** — inside the budget, no raise. Each throw grows by
+those 14 bytes: a paper `dice: 3` averages **12215 / 2720 B** (worst seed 13472 / 2891),
+glass 8558 / 1812, paper `dice: 5` 19187 / 3893.

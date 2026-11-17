@@ -58,3 +58,16 @@ sin 52°) from every neighbour; the user chose **front-right, `[1.65, 1.15]`**. 
 to a landscape felt, which suits a hero background; the felt stays centred, so the far-left
 corner carries bare felt. From 0.3.0 `dice: 5` places die 4 there; `dice: 2–4` are untouched.
 
+## Addendum 2026-11-17 — the lattice lies on the ground
+
+The dice were projected at 52° and placed on the ground (screen y = ground y · sin 52°), but
+the felt's lattice was still drawn in the screen plane: regular hexagons, square octagon
+cells, so under a bare table (`felt`/`rail: 'transparent'`, the README's showcase) the dice
+stood in front of a wall rather than on a floor. From 0.5.0 the pattern is foreshortened by
+the same camera: `scale(1 sin PITCH)` outermost in its `patternTransform`, after the seeded
+phase and turn — a tile turned on the ground, then seen from above. It stays orthographic,
+like the cube: no convergence, since an SVG pattern is affine and true perspective remains
+backlog. Seen in Chromium, Firefox and WebKit for all three kinds and both hex orientations:
+the non-uniform scale opens no tile seams. The felt's corners and the rail's widths keep
+their screen-plane geometry (not chosen for this change); every `toss()` changes bytes.
+

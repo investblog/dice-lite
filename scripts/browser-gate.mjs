@@ -103,6 +103,8 @@ async function verify(pw, engine, port, motion) {
 const MUTATIONS = [
 	{ label: 'toss is not a function', edits: [['return { toss: toss,', 'return { toss: 0,']] },
 	{ label: 'the lattice never drawn', edits: [["if (o.lattice === 'none') return ['fill', 'none'];", "if (true) return ['fill', 'none'];"]] },
+	{ label: 'the lattice stands as a wall', edits: [["'patternTransform', 'scale(1 ' + n(Math.sin(PITCH), 3) + ') translate('", "'patternTransform', 'translate('"]] },
+	{ label: 'the lattice squashed before its turn', edits: [["'patternTransform', 'scale(1 ' + n(Math.sin(PITCH), 3) + ') translate('", "'patternTransform', 'translate('"], ["') rotate(' + n(90 * S('table:turn')(), 2) + ')'],", "') rotate(' + n(90 * S('table:turn')(), 2) + ') scale(1 ' + n(Math.sin(PITCH), 3) + ')'],"]] },
 	{ label: 'id key without the table style', edits: [['key += c.cab + c.w + c.p', 'key += c.w + c.p']] },
 	{ label: 'salt ignored for ids', edits: [['tokens(S, (o.salt || \'\') + key)', 'tokens(S, key)']] },
 	// re-anchored in 0.3.0: the rail modes rewrote this line in dfe8d9a and the mutation sat SKIPped since

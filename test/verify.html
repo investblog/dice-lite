@@ -91,6 +91,23 @@
 		return !Dice.toss({ seed: 1, lattice: 'none' }).includes('<pattern');
 	});
 
+	check('the lattice lies on the ground', () => {
+		// read the transform as the engine parses it: a ground circle must land on a screen
+		// ellipse squashed by sin 52° with its axes on x and y — M·Mᵀ = diag(1, k²). Missing the
+		// squash fails the k²; squashing before the seeded turn shears it off the diagonal
+		const k2 = Math.sin(0.91) ** 2;
+		for (const seed of [1, 2, 3, 4, 5, 6]) {
+			const host = document.createElement('div');
+			host.innerHTML = Dice.toss({ seed });
+			const pats = host.querySelectorAll('pattern');
+			if (pats.length !== 1) return false;
+			const m = pats[0].patternTransform.baseVal.consolidate().matrix;
+			const xx = m.a * m.a + m.c * m.c, yy = m.b * m.b + m.d * m.d, xy = m.a * m.b + m.c * m.d;
+			if (Math.abs(xx - 1) > 0.01 || Math.abs(yy - k2) > 0.01 || Math.abs(xy) > 0.01) return false;
+		}
+		return true;
+	});
+
 	check('ids never collide on a page', () => {
 		const ids = [];
 		for (const opts of [{ seed: 1 }, { seed: 1, salt: 'b' }, { seed: 1, theme: 'light' }, { seed: 1, style: 'line' }]) {

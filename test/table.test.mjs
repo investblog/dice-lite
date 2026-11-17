@@ -162,6 +162,22 @@ test('no float noise: every number in the output is rounded on purpose', () => {
 	assert.equal(Dice.die({ seed: 3 }).match(/\d\.\d{5,}/u), null, 'the icon too');
 });
 
+test('the lattice lies on the ground: foreshortened by sin 52° in y, outermost (ADR 002 addendum)', () => {
+	// the dice stand on a floor seen at PITCH 0.91; a screen-plane lattice reads as a wall behind
+	// them. The y scale must come FIRST in patternTransform (applied last): the seeded turn
+	// happens on the ground, then the camera squashes it — rotating after the squash would
+	// shear the tiles off the floor
+	for (const seed of [1, 2, 'spintax.net', 77]) {
+		for (const lattice of ['trigon', 'octagon', 'hex']) {
+			const pt = Dice.toss({ seed, lattice }).match(/patternTransform="([^"]*)"/u);
+			assert.ok(pt, `seed ${seed} ${lattice}: the lattice carries a patternTransform`);
+			const m = pt[1].match(/^scale\(1 ([\d.]+)\) translate\([^)]*\) rotate\([^)]*\)$/u);
+			assert.ok(m, `seed ${seed} ${lattice}: scale(1 k) leads the transform — got "${pt[1]}"`);
+			assert.ok(Math.abs(+m[1] - Math.sin(0.91)) < 0.005, `seed ${seed} ${lattice}: k ${m[1]} is sin 52°`);
+		}
+	}
+});
+
 test('lattice kinds and none', () => {
 	assert.ok(Dice.toss().includes('<pattern'), 'auto draws the lattice');
 	assert.ok(Dice.toss({ lattice: 'trigon' }).includes('<pattern'));

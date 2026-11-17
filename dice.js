@@ -364,7 +364,8 @@
 		return ['fill', 'url(#' + c.add('tile' + col + op, function () {
 			return el('pattern', ['id', '%', 'patternUnits', 'userSpaceOnUse',
 				'width', n(flatHex ? tall : pitch, 2), 'height', n(flatHex ? pitch : tall, 2),
-				'patternTransform', 'translate(' + n(pitch * S('table:phase')(), 2) + ' ' + n(pitch * S('table:phase2')(), 2) +
+				// on the ground (ADR 002 addendum): turned on the floor, then seen at PITCH
+				'patternTransform', 'scale(1 ' + n(Math.sin(PITCH), 3) + ') translate(' + n(pitch * S('table:phase')(), 2) + ' ' + n(pitch * S('table:phase2')(), 2) +
 					') rotate(' + n(90 * S('table:turn')(), 2) + ')'],
 			// butt caps (the default, never set): round caps blunt the vertices (hexagons.js:918)
 			el('path', ['d', lattice(kind, pitch, flatHex), 'fill', 'none', 'stroke', col,

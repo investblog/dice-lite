@@ -4,6 +4,16 @@ All notable changes to `@spintax/dice-lite`. The version is the contract: same (
 options) → identical bytes within a minor version; any change to the output bytes is a minor
 bump.
 
+## 0.5.0 — 2026-11-17
+
+- **The lattice lies on the ground.** The felt's pattern was drawn in the screen plane, so
+  under the 52° camera the dice stood before a wall of regular hexagons — plainest on the bare
+  table of the README's showcase. It is now foreshortened by the camera's own pitch
+  (`scale(1 0.79)`, outermost: the seeded turn happens on the floor, then the floor is seen
+  from above). Orthographic, like the dice; no convergence (ADR 002 addendum). Every `toss()`
+  changes bytes (+14 B a throw); `die()` is unchanged.
+- Library 8801 B gzipped, inside the 8832 budget.
+
 ## 0.4.0 — 2026-11-17
 
 - **Every face corner is rounded.** Where a seam meets the silhouette it now stops 18 units

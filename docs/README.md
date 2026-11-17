@@ -10,13 +10,13 @@ project: dice-lite
 Docs for developers and agents. `index.html` will be the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-11-17): v0.4.0.** The library is feature-complete and on npm: the projected
-cube on the brand table (ADR 002 addendum), every face corner rounded — nose arcs and
-silhouette fillets (ADR 007 addenda), the five results completing any pins (ADR 003 and
-addendum), the settle (ADR 005 addendum), `init()`, types — 46 tests and the 15-check browser
-gate green, every one of its 16 mutations seen red; the library 8786 B gzipped of the budget
-**8832** (ADR 006), a `dice: 3` paper throw averaging 12201 B raw / 2711 B gzip over 60 seeds
-(ADR 006, 0.4.0 addendum). Every number below is either a family measurement carried over or a *provisional*
+**Status (2026-11-17): v0.5.0.** The library is feature-complete and on npm: the projected
+cube on the brand table, the lattice lying on the ground under it (ADR 002 addenda), every
+face corner rounded — nose arcs and silhouette fillets (ADR 007 addenda), the five results
+completing any pins (ADR 003 and addendum), the settle (ADR 005 addendum), `init()`, types —
+48 tests and the 16-check browser gate green, every one of its 18 mutations seen red; the
+library 8801 B gzipped of the budget **8832** (ADR 006), a `dice: 3` paper throw averaging
+12215 B raw / 2720 B gzip over 60 seeds (ADR 006, 0.5.0 addendum). Every number below is either a family measurement carried over or a *provisional*
 forecast naming the milestone that replaces it with a measurement; this line is kept true at
 every milestone.
 
@@ -78,7 +78,7 @@ it. The viewBox follows `dice`: the felt is sized to the canonical slots plus ma
 
 | Part | Geometry | Seeded? |
 |---|---|---|
-| Felt | the table surface; carries the lattice at a low weight | no |
+| Felt | the table surface; carries the lattice at a low weight, lying on the ground: the pattern is foreshortened by sin 52° in y, the camera's own pitch, so the tiles recede like the floor the dice stand on (ADR 002 addendum) | no |
 | Rail | a padded ring around the felt in `rail` | width, corner |
 | Shadow | a broad `<ellipse>` per die (plus a contact one under glass), a seam pool where dice touch | — |
 | Die | a rounded cube: silhouette = rounded hull of the 8 projected corners; faces = projected quads under a shared airbrush | yaw, value |
@@ -269,10 +269,11 @@ needed** — there is no fixed `d` to count (ADR 002); a pinned test asserts the
   when M3 measured 7227 B gzipped; the ADR 007 day (seams, glass, the corner-trim corrections
   and their review fixes) raised it three times with measurements — 7596 → 8359 → 8528,
   each ceiling the smallest 128-rounded number that covers the measured size; 0.3.0 measured
-  8572 B inside it, and 0.4.0's silhouette fillets raised it once more — **8786 B gzipped**.
-- Output, **re-measured at 0.4.0 over seeds 1–60** (ADR 006 addenda; the M3 numbers predate
-  the seams and the glass): `dice: 3` paper averages **12201 B raw / 2711 B gzip**, worst
-  seed 13458 / 2881; glass 8544 / 1802; `dice: 5` paper 19173 / 3883. `line` changes the
+  8572 B inside it, 0.4.0's silhouette fillets raised it once more, and 0.5.0's ground
+  lattice fits inside — **8801 B gzipped**.
+- Output, **re-measured at 0.5.0 over seeds 1–60** (ADR 006 addenda; the M3 numbers predate
+  the seams and the glass): `dice: 3` paper averages **12215 B raw / 2720 B gzip**, worst
+  seed 13472 / 2891; glass 8558 / 1812; `dice: 5` paper 19187 / 3893. `line` changes the
   felt and rail treatment only; the dice are identical in both styles.
 
 ## Promotion
